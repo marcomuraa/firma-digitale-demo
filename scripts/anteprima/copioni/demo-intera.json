@@ -1,0 +1,129 @@
+[
+  {
+    "_copione": "La demo intera, percorsa pilotando window.__demo invece dei bottoni.",
+    "_perche": "Cosi lo stesso copione vale per tutte e due le direzioni visive, che i bottoni li disegnano in modi diversi. Il gancio e docs/contratti-dom.md sezione 1: window.__demo = createDemo(), la stessa istanza che pilota la pagina.",
+    "_uso": "node scripts/anteprima/anteprima.mjs --entry protocollo --copione scripts/anteprima/copioni/demo-intera.json --scatti /tmp/miei-scatti",
+    "_stati": "15 scatti: caricamento, i sette passi che portano al firmato, verifica, i tre attacchi con il ripristino fra l uno e l altro, chiusura.",
+    "_api": "L API e quella di src/ui/machine.js: run(stepId) e asincrona, restoreSigned() e sincrona, getState() restituisce un istantanea. Gli stepId sono quelli di src/ui/steps.js.",
+    "_attenzione": "Non far restituire getState() al js delle azioni: l istantanea contiene Uint8Array e la serializzazione per valore di DevTools la trasformerebbe in un oggetto enorme. Restituisci solo campi scalari."
+  },
+
+  {
+    "nome": "01-caricamento",
+    "_nota": "Nessun passo eseguito: e lo stato in cui la pagina si presenta a chi la apre.",
+    "aspetta": "document.body.dataset.boot === 'ok' && !!window.__demo",
+    "attendi": 500
+  },
+
+  {
+    "nome": "02-documento",
+    "js": "await window.__demo.run('documento')",
+    "aspetta": "window.__demo.getState().passoCorrente === 'documento'",
+    "attendi": 700
+  },
+
+  {
+    "nome": "03-chiavi",
+    "_nota": "La generazione RSA-2048 non e istantanea: qui l attesa e piu lunga.",
+    "js": "await window.__demo.run('chiavi')",
+    "aspetta": "window.__demo.getState().passoCorrente === 'chiavi'",
+    "scadenza": 30000,
+    "attendi": 400
+  },
+
+  {
+    "nome": "04-certificato",
+    "js": "await window.__demo.run('certificato')",
+    "aspetta": "window.__demo.getState().passoCorrente === 'certificato'",
+    "attendi": 400
+  },
+
+  {
+    "nome": "05-placeholder",
+    "_nota": "Da qui in poi il file e piu lungo del campione: il righello deve mostrarlo.",
+    "js": "await window.__demo.run('placeholder')",
+    "aspetta": "window.__demo.getState().passoCorrente === 'placeholder'",
+    "attendi": 600
+  },
+
+  {
+    "nome": "06-impronta",
+    "js": "await window.__demo.run('impronta')",
+    "aspetta": "window.__demo.getState().passoCorrente === 'impronta'",
+    "attendi": 400
+  },
+
+  {
+    "nome": "07-cms",
+    "js": "await window.__demo.run('cms')",
+    "aspetta": "window.__demo.getState().passoCorrente === 'cms'",
+    "attendi": 400
+  },
+
+  {
+    "nome": "08-firmato",
+    "_nota": "Il documento firmato: il CMS e dentro il buco /Contents.",
+    "js": "await window.__demo.run('firma')",
+    "aspetta": "window.__demo.getState().documento.etichetta === 'firmato'",
+    "attendi": 700
+  },
+
+  {
+    "nome": "09-verifica",
+    "_nota": "Atteso: verdetto valid, copertura completa.",
+    "js": "await window.__demo.run('verifica'); return window.__demo.getState().verdetto",
+    "aspetta": "window.__demo.getState().verdetto === 'valid'",
+    "attendi": 500
+  },
+
+  {
+    "nome": "10-attacco-1a",
+    "_nota": "Un byte dentro la zona coperta. Atteso: invalid, e il documento mostra 9.000 euro (mille euro).",
+    "js": "await window.__demo.run('attacco-cifra'); return window.__demo.getState().verdetto",
+    "aspetta": "window.__demo.getState().verdetto === 'invalid'",
+    "attendi": 900
+  },
+
+  {
+    "nome": "11-ripristino-dopo-1a",
+    "_nota": "Fra un attacco e l altro il documento torna integro. Il pannello dell attacco resta in pagina: i pannelli si impilano, non si cancellano.",
+    "js": "window.__demo.restoreSigned(); return window.__demo.getState().verdetto",
+    "aspetta": "window.__demo.getState().verdetto === 'valid'",
+    "attendi": 700
+  },
+
+  {
+    "nome": "12-attacco-1b",
+    "_nota": "mille -> novemila. Il file e strutturalmente incoerente ma pdf.js lo ricostruisce e disegna 1.000 euro (novemila euro): non aspettarsi un rendering fallito, vedi docs/stato.md punto 2.",
+    "js": "await window.__demo.run('attacco-lettere'); return window.__demo.getState().verdetto",
+    "aspetta": "window.__demo.getState().verdetto === 'invalid'",
+    "attendi": 900
+  },
+
+  {
+    "nome": "13-ripristino-dopo-1b",
+    "js": "window.__demo.restoreSigned(); return window.__demo.getState().verdetto",
+    "aspetta": "window.__demo.getState().verdetto === 'valid'",
+    "attendi": 700
+  },
+
+  {
+    "nome": "14-attacco-2",
+    "_nota": "Niente si tocca, si appende. Atteso: extended, la coda spunta fuori dalla parte coperta del righello, e il documento renderizzato cambia davvero.",
+    "js": "await window.__demo.run('attacco-coda'); return window.__demo.getState().verdetto",
+    "aspetta": "window.__demo.getState().verdetto === 'extended'",
+    "attendi": 900
+  },
+
+  {
+    "nome": "15-chiusura",
+    "js": "await window.__demo.run('chiusura'); return window.__demo.getState().passoCorrente",
+    "aspetta": "window.__demo.getState().passoCorrente === 'chiusura'",
+    "attendi": 600
+  },
+
+  {
+    "_nota": "Ultimo controllo, senza scatto: nessun errore rimasto, dodici passi fatti, e i marcatori del DOM allineati allo stato.",
+    "js": "const s = window.__demo.getState(); return { passi: s.passiFatti.length, verdetto: s.verdetto, errore: s.errore ? s.errore.messaggio : null, marcatoreVerdetto: document.body.dataset.verdetto, marcatorePasso: document.body.dataset.passoCorrente, pannelli: document.querySelectorAll('[data-pannello]').length }"
+  }
+]

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sonda vocale — quale voce per la demo</title>
+<style>
+  :root {
+    --carta:      #f4f2ec;
+    --carta-alta: #fffefb;
+    --inchiostro: #1b2430;
+    --tenue:      #5d6673;
+    --filo:       #d6d2c6;
+    --timbro:     #2b3a8f;
+    --evidenza:   #fdf6d8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --carta:      #14181e;
+      --carta-alta: #1c222a;
+      --inchiostro: #e6e3db;
+      --tenue:      #9aa3b0;
+      --filo:       #333c48;
+      --timbro:     #93a6ff;
+      --evidenza:   #2c2a1c;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    padding: 2.5rem 1.25rem 5rem;
+    background: var(--carta);
+    color: var(--inchiostro);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 46rem; margin: 0 auto; }
+
+  header { border-bottom: 2px solid var(--inchiostro); padding-bottom: 1.5rem; margin-bottom: 2rem; }
+  .occhiello {
+    font-size: .75rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--tenue); margin: 0 0 .6rem;
+  }
+  h1 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 1.2rem; font-weight: 600; }
+  .domanda {
+    margin: 0; padding: 1rem 1.25rem;
+    background: var(--evidenza); border-left: 4px solid var(--timbro);
+    font-size: 1.15rem; font-weight: 600; line-height: 1.45;
+  }
+  header p.nota { color: var(--tenue); font-size: .95rem; margin: 1.2rem 0 0; }
+
+  .campione {
+    background: var(--carta-alta);
+    border: 1px solid var(--filo);
+    border-radius: 4px;
+    padding: 1.25rem 1.4rem 1.4rem;
+    margin-bottom: 1.5rem;
+  }
+  .campione h2 {
+    font-size: 1.1rem; margin: 0; font-weight: 600;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: .6rem;
+  }
+  .campione h2 .sesso { font-weight: 400; color: var(--tenue); }
+  .etichetta {
+    font-size: .7rem; letter-spacing: .1em; text-transform: uppercase;
+    color: #fffefb; background: var(--timbro);
+    padding: .2rem .5rem; border-radius: 3px; font-weight: 700;
+  }
+  @media (prefers-color-scheme: dark) {
+    .etichetta { color: #14181e; }
+  }
+  .campione .meta { color: var(--tenue); font-size: .85rem; margin: .45rem 0 1rem; }
+  audio { width: 100%; display: block; margin-bottom: .9rem; }
+  .letto {
+    margin: 0; padding: .9rem 1rem;
+    border-left: 3px solid var(--filo);
+    color: var(--tenue); font-size: .9rem; line-height: 1.65;
+    white-space: pre-wrap;
+  }
+  .letto b { color: var(--inchiostro); font-weight: 600; }
+  .didascalia { margin: .8rem 0 0; font-size: .8rem; color: var(--tenue); }
+  .didascalia a { color: var(--timbro); }
+
+  .coda { border-top: 1px solid var(--filo); margin-top: 2.5rem; padding-top: 1.5rem; }
+  .coda h2 { font-size: 1rem; margin: 0 0 .7rem; }
+  .coda ul { margin: 0; padding-left: 1.2rem; color: var(--tenue); font-size: .92rem; }
+  .coda li { margin-bottom: .45rem; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88em; }
+</style>
+</head>
+<body>
+<main>
+
+  <header>
+    <p class="occhiello">Demo firma digitale — sonda vocale</p>
+    <h1>Tre campioni dello stesso testo. Serve l’orecchio di chi ascolta, non un giudizio tecnico.</h1>
+    <p class="domanda">Suona italiana, o suona come un inglese che legge l’italiano?</p>
+    <p class="nota">
+      Se dopo trenta secondi hai pensato «questa persona non è madrelingua», la voce è bocciata.
+      Ascolta con le casse o le cuffie che userai davvero alla presentazione. Prima passata leggendo
+      il testo, seconda passata <b>a occhi chiusi</b>: è lì che l’accento straniero salta fuori.
+      L’elenco delle parole-spia sta in <code>NOTE-ascolto.md</code>.
+    </p>
+    <p class="nota">
+      <b>Due avvertenze prima di premere play.</b> La voce B esce circa 4,5 dB più bassa della voce A:
+      è una differenza di volume, non di qualità, quindi alza le casse quando passi alla B, altrimenti
+      la A vince per il motivo sbagliato. E nei due campioni Kokoro c’è una giuntura tecnica subito dopo
+      la parola <i>byte</i>, perché il motore ha spezzato il testo in due tronconi: se senti uno stacco
+      esattamente lì, è la giuntura, non la pronuncia. Nella demo vera non ci sarà, perché ogni segmento
+      è molto più corto.
+    </p>
+  </header>
+
+  <section class="campione">
+    <h2><span class="etichetta">Voce A</span> Kokoro — if_sara <span class="sesso">(femminile)</span></h2>
+    <p class="meta">Kokoro v1.0, fonemi da espeak-ng italiano · 29,5 s · WAV 24 kHz mono</p>
+    <audio controls preload="metadata" src="out/kokoro-if_sara.wav">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/kokoro-if_sara.wav</code>.
+    </audio>
+    <p class="letto">Questo documento è una promessa di pagamento: mille euro entro il giorno trenta settembre.
+Un impegno serio, ma senza valore legale: è una dimostrazione.
+La firma digitale non è un disegno.
+Il programma calcola un'impronta del documento, poi la chiude con la chiave privata.
+Il certificato dice chi ha firmato.
+Lo standard si chiama <b>pades</b>, e la zona coperta si chiama <b>bait reing</b>.
+Se qualcuno sbaglia una cifra, o cambia un solo byte, nessuno se ne accorge.
+La macchina, invece, legge meglio.
+La verifica riconosce ogni falsificazione, perché lascia una differenza.</p>
+    <p class="didascalia">
+      Al motore va il testo fonetico: per questo i due nomi tecnici sono scritti come si pronunciano.
+      Stesso audio nel formato di consegna previsto dal piano:
+      <a href="out/kokoro-if_sara.opus">kokoro-if_sara.opus</a> — Opus mono 32 kbps, 120 kB.
+    </p>
+  </section>
+
+  <section class="campione">
+    <h2><span class="etichetta">Voce B</span> Kokoro — im_nicola <span class="sesso">(maschile)</span></h2>
+    <p class="meta">Kokoro v1.0, fonemi da espeak-ng italiano · 32,6 s · WAV 24 kHz mono</p>
+    <audio controls preload="metadata" src="out/kokoro-im_nicola.wav">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/kokoro-im_nicola.wav</code>.
+    </audio>
+    <p class="letto">Questo documento è una promessa di pagamento: mille euro entro il giorno trenta settembre.
+Un impegno serio, ma senza valore legale: è una dimostrazione.
+La firma digitale non è un disegno.
+Il programma calcola un'impronta del documento, poi la chiude con la chiave privata.
+Il certificato dice chi ha firmato.
+Lo standard si chiama <b>pades</b>, e la zona coperta si chiama <b>bait reing</b>.
+Se qualcuno sbaglia una cifra, o cambia un solo byte, nessuno se ne accorge.
+La macchina, invece, legge meglio.
+La verifica riconosce ogni falsificazione, perché lascia una differenza.</p>
+    <p class="didascalia">
+      Stesso testo fonetico della voce A, così il confronto è alla pari.
+      Formato di consegna: <a href="out/kokoro-im_nicola.opus">kokoro-im_nicola.opus</a> —
+      Opus mono 32 kbps, 133 kB.
+    </p>
+  </section>
+
+  <section class="campione">
+    <h2><span class="etichetta">Ripiego</span> macOS — Alice</h2>
+    <p class="meta">Voce di sistema italiana, non passa da espeak-ng · 35,0 s · WAV 24 kHz mono</p>
+    <audio controls preload="metadata" src="out/say-alice.wav">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/say-alice.wav</code>.
+    </audio>
+    <p class="letto">Questo documento è una promessa di pagamento: mille euro entro il giorno trenta settembre.
+Un impegno serio, ma senza valore legale: è una dimostrazione.
+La firma digitale non è un disegno.
+Il programma calcola un'impronta del documento, poi la chiude con la chiave privata.
+Il certificato dice chi ha firmato.
+Lo standard si chiama <b>PAdES</b>, e la zona coperta si chiama <b>ByteRange</b>.
+Se qualcuno sbaglia una cifra, o cambia un solo byte, nessuno se ne accorge.
+La macchina, invece, legge meglio.
+La verifica riconosce ogni falsificazione, perché lascia una differenza.</p>
+    <p class="didascalia">
+      Ad Alice va il testo ortografico, non quello fonetico: è italiano nativo e i due nomi tecnici
+      li affronta da sé — nota come li pronuncia, è l’unica riga che differisce dalle altre due.
+      È il metro di paragone, non il vincitore automatico.
+    </p>
+  </section>
+
+  <section class="coda">
+    <h2>Come rispondere</h2>
+    <ul>
+      <li><b>voce A</b> (Sara) — si usa questa, suona italiana;</li>
+      <li><b>voce B</b> (Nicola) — si usa questa, suona italiana;</li>
+      <li><b>nessuna delle due</b> — si passa al ripiego con la voce di sistema;</li>
+      <li><b>A o B ma con riserva</b> — va indicata la parola su cui si è sentito il problema, e si
+          prova a correggerla con la mappa fonetica prima di buttare via la voce.</li>
+    </ul>
+    <p class="didascalia">
+      Se possibile, vanno aggiunte le due o tre parole su cui è rimasto il dubbio. I punti a rischio noti sono le
+      doppie (<i>mille</i>, <i>promessa</i>, <i>nessuno</i>), i gruppi <i>gl</i> e <i>gn</i>, la <i>z</i>
+      di <i>zona</i>, e la parola <i>byte</i>, che il motore fonemizza in inglese per una parola sola.
+      Una parola sbagliata si aggiusta scrivendola diversamente; un accento sbagliato ovunque, no.
+    </p>
+  </section>
+
+</main>
+</body>
+</html>

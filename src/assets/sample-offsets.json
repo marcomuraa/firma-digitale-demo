@@ -1,0 +1,328 @@
+{
+  "version": 2,
+  "fileName": "sample.pdf",
+  "appliesTo": "sample.pdf NON firmato, sha256 8eb0f906ed51563c... - questi offset NON valgono dopo pdflibAddPlaceholder ne dopo un save() di pdf-lib. Vedi scope.",
+  "scope": {
+    "documento": "sample.pdf come esce da \"npm run pdf\", prima di qualunque firma",
+    "validoSe": "sha256 dei byte in mano identico al campo sha256 di questo file",
+    "invalidatoDa": [
+      "pdflibAddPlaceholder (@signpdf/placeholder-pdf-lib): passa da pdf-lib, che RISCRIVE il documento invece di appenderlo. Il prefisso comune col campione e di 9 byte (\"%PDF-1.7\\n\"): ogni offset di questo file punta altrove.",
+      "PDFDocument.load(...).save() di pdf-lib, anche senza placeholder: stessa riscrittura.",
+      "l attacco 1b (attacks.tamperWords): allunga il content stream, restano validi solo gli offset che precedono amount.wordsStart."
+    ],
+    "conservatoDa": [
+      "un incremental update appeso in coda - l attacco 2, e anche un placeholder PAdES costruito a mano: il campione resta identico byte per byte e tutti gli offset di questo file restano validi. Cambiano solo fileLength e la xref attiva, quindi sections non copre piu il file intero."
+    ],
+    "comeRilocalizzare": "cerca nei byte correnti le stringhe letterali di anchors[]: ognuna compare una volta sola e viene ricopiata verbatim anche da pdf-lib. Sommando anchors[].fields agli offset trovati si ricostruiscono i campi di amount e signatureDrawing. Implementazione di riferimento, senza dipendenze e utilizzabile anche nel browser: scripts/pdf/relocate-offsets.mjs",
+    "daRileggereDaiByte": [
+      "objects",
+      "sections",
+      "xref",
+      "contentStream"
+    ]
+  },
+  "fileLength": 1285,
+  "sha256": "8eb0f906ed51563c81f354f818e12dd3d561ff703fc4bb7d2b391b5e61e507a1",
+  "padCount": 3,
+  "objects": [
+    {
+      "num": 1,
+      "type": "Catalog",
+      "label": "Catalogo",
+      "start": 9,
+      "end": 57
+    },
+    {
+      "num": 2,
+      "type": "Pages",
+      "label": "Albero delle pagine",
+      "start": 58,
+      "end": 114
+    },
+    {
+      "num": 3,
+      "type": "Page",
+      "label": "Pagina",
+      "start": 115,
+      "end": 252
+    },
+    {
+      "num": 4,
+      "type": "ContentStream",
+      "label": "Contenuto della pagina",
+      "start": 253,
+      "end": 953
+    },
+    {
+      "num": 5,
+      "type": "Font",
+      "label": "Font Times-Roman",
+      "start": 954,
+      "end": 1025
+    }
+  ],
+  "sections": [
+    {
+      "id": "header",
+      "label": "Intestazione",
+      "start": 0,
+      "end": 9
+    },
+    {
+      "id": "obj1",
+      "label": "Oggetto 1 - Catalogo",
+      "start": 9,
+      "end": 58
+    },
+    {
+      "id": "obj2",
+      "label": "Oggetto 2 - Albero delle pagine",
+      "start": 58,
+      "end": 115
+    },
+    {
+      "id": "obj3",
+      "label": "Oggetto 3 - Pagina",
+      "start": 115,
+      "end": 253
+    },
+    {
+      "id": "obj4",
+      "label": "Oggetto 4 - Contenuto della pagina",
+      "start": 253,
+      "end": 954
+    },
+    {
+      "id": "obj5",
+      "label": "Oggetto 5 - Font Times-Roman",
+      "start": 954,
+      "end": 1026
+    },
+    {
+      "id": "xref",
+      "label": "Tabella xref",
+      "start": 1026,
+      "end": 1155
+    },
+    {
+      "id": "trailer",
+      "label": "Trailer",
+      "start": 1155,
+      "end": 1264
+    },
+    {
+      "id": "startxref",
+      "label": "startxref",
+      "start": 1264,
+      "end": 1279
+    },
+    {
+      "id": "eof",
+      "label": "Fine file",
+      "start": 1279,
+      "end": 1285
+    }
+  ],
+  "contentStream": {
+    "objNum": 4,
+    "dataStart": 286,
+    "dataEnd": 936,
+    "declaredLength": 650,
+    "lengthValueStart": 272,
+    "lengthValueEnd": 275
+  },
+  "amount": {
+    "lineStart": 576,
+    "lineEnd": 604,
+    "digitsStart": 577,
+    "digitsEnd": 582,
+    "digitOffset": 577,
+    "wordsStart": 589,
+    "wordsEnd": 594,
+    "digits": "1.000",
+    "words": "mille",
+    "line": "(1.000 euro (mille euro)) Tj"
+  },
+  "signatureDrawing": {
+    "start": 726,
+    "end": 936,
+    "label": "Firma autografa, geometria pura"
+  },
+  "anchors": [
+    {
+      "id": "title",
+      "label": "Titolo del documento",
+      "text": "(PROMESSA DI PAGAMENTO) Tj",
+      "fields": {},
+      "start": 309,
+      "end": 335
+    },
+    {
+      "id": "disclaimer",
+      "label": "Marcatura \"privo di valore legale\"",
+      "text": "(Documento dimostrativo, privo di valore legale.) Tj",
+      "fields": {},
+      "start": 362,
+      "end": 414
+    },
+    {
+      "id": "amountLine",
+      "label": "Riga dell importo",
+      "text": "(1.000 euro (mille euro)) Tj",
+      "fields": {
+        "lineStart": 0,
+        "digitsStart": 1,
+        "digitsEnd": 6,
+        "digitOffset": 1,
+        "wordsStart": 13,
+        "wordsEnd": 18,
+        "lineEnd": 28
+      },
+      "start": 576,
+      "end": 604
+    },
+    {
+      "id": "signature",
+      "label": "Firma autografa, geometria pura",
+      "text": "q\n1.1 w\n1 J\n1 j\n0.10 0.13 0.45 RG\n78 502 m\n86 538 98 550 106 524 c\n113 502 103 487 97 501 c\n104 529 127 540 143 514 c\n157 492 167 525 179 519 c\n191 513 195 489 213 513 c\nS\n84 489 m\n130 481 178 495 217 485 c\nS\nQ",
+      "fields": {
+        "start": 0,
+        "end": 210
+      },
+      "start": 726,
+      "end": 936
+    }
+  ],
+  "attacks": {
+    "nota": "Previsioni deterministiche, ricalcolate dal validatore sui byte. La reazione dei renderer e MISURATA, non assunta: il piano prevedeva che dopo 1b pdf.js rifiutasse il file, ed e falso. Vedi docs/pdf-campione.md sezione 4.",
+    "applicabiliA": "gli offset qui sotto sono quelli del campione non firmato. Su un PDF firmato vanno rilocalizzati con anchors[] (scope.comeRilocalizzare) prima di scrivere un byte.",
+    "tamperDigit": {
+      "id": "1a",
+      "label": "Falsifica la cifra",
+      "offset": 577,
+      "fromByte": 49,
+      "toByte": 57,
+      "from": "1",
+      "to": "9",
+      "anchor": {
+        "id": "amountLine",
+        "field": "digitOffset"
+      },
+      "deltaLength": 0,
+      "structureIntact": true,
+      "textAfter": "9.000 euro (mille euro)",
+      "renderersOpenAfter": true
+    },
+    "tamperWords": {
+      "id": "1b",
+      "label": "Falsifica anche le lettere",
+      "start": 589,
+      "end": 594,
+      "from": "mille",
+      "to": "novemila",
+      "anchor": {
+        "id": "amountLine",
+        "fieldStart": "wordsStart",
+        "fieldEnd": "wordsEnd"
+      },
+      "deltaLength": 3,
+      "textAfter": "1.000 euro (novemila euro)",
+      "renderersOpenAfter": true,
+      "premessaDelPianoSmentita": "Il piano diceva \"pdf.js si rifiuta di renderizzare\". Misurato falso: pdf.js emette un avviso, ricostruisce l xref scandendo il file, ignora il /Length sbagliato e disegna la pagina. Il pannello deve mostrare i tre disallineamenti qui sotto, non aspettare un eccezione che non arriva.",
+      "evidence": [
+        {
+          "id": "length",
+          "label": "/Length dichiarato contro byte reali dello stream",
+          "declared": 650,
+          "actual": 653,
+          "valueStart": 272,
+          "valueEnd": 275
+        },
+        {
+          "id": "xref",
+          "label": "voci xref che non puntano piu a \"N 0 obj\"",
+          "brokenObjects": [
+            5
+          ],
+          "entries": [
+            {
+              "num": 5,
+              "declaredOffset": 954,
+              "actualOffset": 957
+            }
+          ]
+        },
+        {
+          "id": "startxref",
+          "label": "startxref contro posizione reale della tabella",
+          "declared": 1026,
+          "actual": 1029,
+          "valueStart": 1274,
+          "valueEnd": 1278
+        }
+      ]
+    }
+  },
+  "xref": {
+    "start": 1026,
+    "end": 1155,
+    "entries": [
+      {
+        "num": 0,
+        "offset": 0,
+        "gen": 65535,
+        "type": "f"
+      },
+      {
+        "num": 1,
+        "offset": 9,
+        "gen": 0,
+        "type": "n"
+      },
+      {
+        "num": 2,
+        "offset": 58,
+        "gen": 0,
+        "type": "n"
+      },
+      {
+        "num": 3,
+        "offset": 115,
+        "gen": 0,
+        "type": "n"
+      },
+      {
+        "num": 4,
+        "offset": 253,
+        "gen": 0,
+        "type": "n"
+      },
+      {
+        "num": 5,
+        "offset": 954,
+        "gen": 0,
+        "type": "n"
+      }
+    ],
+    "startxrefValue": 1026,
+    "startxrefValueStart": 1274,
+    "startxrefValueEnd": 1278
+  },
+  "text": {
+    "lines": [
+      "PROMESSA DI PAGAMENTO",
+      "Documento dimostrativo, privo di valore legale.",
+      "Io sottoscritto Lorenzo Rossi prometto di pagare",
+      "al signor Mario Bianchi la somma di",
+      "1.000 euro (mille euro)",
+      "entro il giorno 30 settembre 2026.",
+      "Roma, 10 agosto 2026"
+    ],
+    "disclaimer": "Documento dimostrativo, privo di valore legale."
+  },
+  "alignment": {
+    "row": 16,
+    "padCount": 3,
+    "iterations": 2
+  }
+}

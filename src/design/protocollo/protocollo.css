@@ -1,0 +1,1253 @@
+/* ===========================================================================
+   Direzione visiva A — «Protocollo»
+   Registro degli atti: un fascicolo di fogli protocollo su un cartoncino.
+
+   Regole del registro, non negoziabili e visibili nel foglio:
+     - nessuna ombra sfumata, nessun gradiente di colore, nessun angolo tondo:
+       gli spigoli sono vivi e il tratto e' pieno o non c'e';
+     - due sole texture, entrambe a stop netti (tratteggio della carta bollata):
+       il buco /Contents e la coda non coperta. Non sono gradienti di colore:
+       sono righe, con transizione di lunghezza zero;
+     - le etichette prestampate sono monospaziate, maiuscole, spaziate: sono la
+       modulistica. Il contenuto e' in serif: e' l'atto.
+
+   Doppia modalita': commuta su [data-modalita], mai su due fogli di stile. Il marcatore del
+   contratto sta sul <body> e li' resta; la SCALA pero' sta sulla radice, perche' tutto qui
+   dentro misura in rem e rem risolve su :root — vedi la nota alla tavolozza.
+   =========================================================================== */
+
+/* ------------------------------------------------------------------ tavolozza */
+
+:root {
+  /* Carta e cartoncino */
+  --carta: #e8e6df;          /* il foglio protocollo — dato dal committente */
+  --carta-alta: #f3f1eb;     /* il campo prestampato: dump, citazioni, caselle */
+  --fascicolo: #cbc7ba;      /* il cartoncino della cartella su cui i fogli stanno */
+  --rigo: #b4af9f;           /* filetto di stampa */
+  --rigo-tenue: #c8c3b4;
+  --velo-buco: #dcd7c7;      /* il buco /Contents dentro il dump: un vuoto, non un colore */
+
+  /* Inchiostro */
+  --inchiostro: #16202b;     /* dato dal committente */
+  --inchiostro-2: #3d4956;
+  --inchiostro-3: #5a626d;   /* etichette prestampate: 5,0:1 sulla carta */
+
+  /* Timbro */
+  --timbro: #2b3a8f;         /* dato dal committente */
+  --timbro-scuro: #22307c;
+  --timbro-velo: #d8dbea;
+
+  /* Verdetti: colore + forma + parola, mai il colore da solo */
+  --sigillo: #1c5638;
+  --sigillo-velo: #d5e2d9;
+  --avviso: #7a4f05;
+  --avviso-pieno: #c08a12;
+  --avviso-velo: #ece0c6;
+  --protocollo: #941b1b;
+  --protocollo-velo: #ecd8d8;
+
+  /* Tratteggi a stop netti.
+     Il tratto del buco e' inchiostro, non filetto: e' un disegno che porta informazione (dove
+     comincia e dove finisce il buco /Contents, che su un file firmato vale l'80 % della fascia)
+     e deve stare sopra 3:1 contro la carta alta. Con --rigo stava a 1,94:1, cioe' su un
+     proiettore non esisteva. Un tratto scuro ogni cinque pixel resta una casella tratteggiata:
+     l'idea del vuoto la fa la spaziatura, non la sbiadita. */
+  --tratteggio-buco: repeating-linear-gradient(
+    45deg, var(--inchiostro-3) 0 1px, var(--carta-alta) 1px 5px
+  );
+  --tratteggio-coda: repeating-linear-gradient(
+    45deg, var(--avviso) 0 2px, var(--avviso-pieno) 2px 6px
+  );
+
+  /* Spessore del filetto tratteggiato che chiude in basso le celle del buco /Contents nel dump.
+     E' un filetto che PORTA INFORMAZIONE, quindi in presentazione cresce: vedi la regola
+     [data-hl='hole'] in fondo al foglio. */
+  --filetto-buco: 2px;
+
+  /* Caratteri: tre ruoli, tre facce */
+  --serif-titoli: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua',
+    'URW Palladio L', 'Nimbus Roman No9 L', Georgia, 'Times New Roman', serif;
+  --serif-corpo: Charter, 'Bitstream Charter', 'Sitka Text', Cambria, 'Iowan Old Style',
+    Georgia, 'Times New Roman', serif;
+  --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono',
+    'DejaVu Sans Mono', monospace;
+
+  /* Misure */
+  --misura: 68ch;
+  --margine-foglio: 4.5rem;
+  --fascia-h: 200px;
+
+  font-size: 16px;
+  color-scheme: light;
+}
+
+@media (min-width: 1600px) {
+  :root { font-size: 17px; }
+}
+
+/* Presentazione: piu' grande, piu' contrasto, meno densita'.
+   LA SCALA STA SULLA RADICE, non sul <body>, ed e' una riparazione, non un vezzo. Tutto questo
+   foglio di stile misura in rem, e rem risolve su :root: finche' la scala stava sul <body>
+   cresceva soltanto cio' che aveva una regola dedicata — il titolo, il timbro, l'indice — e
+   restavano a 11 px l'occhiello, le etichette prestampate, i byte del dump, le tacche del
+   righello e le due impronte a confronto. Cioe' esattamente le cose che l'aula deve leggere.
+   La modalita' viene percio' scritta anche su <html> (vedi pagina.js, `rendi`), e la scala
+   cresce con lo schermo: 23 px su un telefono, 25 px su un portatile, 28 px su un proiettore —
+   +44 %, +56 %, +65 % rispetto alla modalita' studio alla stessa larghezza. */
+:root[data-modalita='presentazione'] { font-size: 23px; }
+@media (min-width: 900px) { :root[data-modalita='presentazione'] { font-size: 25px; } }
+@media (min-width: 1600px) { :root[data-modalita='presentazione'] { font-size: 28px; } }
+
+/* I toni restano commutati su [data-modalita] del <body>, come vuole docs/contratti-dom.md. */
+body[data-modalita='presentazione'] {
+  --inchiostro: #0b131c;
+  --inchiostro-2: #23303d;
+  --inchiostro-3: #2f3b48;
+  --rigo: #9d9788;
+  --misura: 46ch;
+  --filetto-buco: 3px;
+}
+
+/* ------------------------------------------------------------------ base */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--fascicolo);
+  color: var(--inchiostro);
+  font-family: var(--serif-corpo);
+  font-size: 1rem;
+  line-height: 1.55;
+  text-rendering: optimizeLegibility;
+}
+
+button { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--timbro);
+  outline-offset: 2px;
+}
+
+body[data-modalita='presentazione'] :focus-visible {
+  outline-width: 4px;
+}
+
+/* Il salto al contenuto: prima voce della tabulazione, invisibile finche' non serve. */
+.salta {
+  position: absolute;
+  left: 0.5rem;
+  top: -4rem;
+  z-index: 40;
+  padding: 0.5rem 0.9rem;
+  background: var(--carta);
+  border: 2px solid var(--timbro);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  color: var(--timbro);
+}
+.salta:focus { top: 0.5rem; }
+
+/* ------------------------------------------------------------------ etichette prestampate */
+
+.prestampa {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--inchiostro-3);
+  font-weight: 500;
+}
+
+/* =========================================================================
+   1. LA FASCIA DI PROTOCOLLO — testata, righello, rubrica
+   ========================================================================= */
+
+.fascia {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--carta);
+  border-bottom: 2px solid var(--inchiostro);
+  padding: 0.7rem clamp(0.9rem, 2.5vw, 2rem) 0.55rem;
+}
+
+/* In presentazione la fascia cresce con la radice come tutto il resto: qui le si stringono i
+   margini, perche' e' appiccicata e ogni riga che si prende la toglie al fascicolo. */
+body[data-modalita='presentazione'] .fascia { padding-top: 0.45rem; padding-bottom: 0.3rem; }
+body[data-modalita='presentazione'] .testata { margin-bottom: 0.25rem; }
+body[data-modalita='presentazione'] .righello { margin-bottom: 0.3rem; }
+body[data-modalita='presentazione'] .righello__legenda { gap: 0.1rem 0.9rem; }
+/* La legenda CRESCE, non si rimpicciolisce. A 0,55rem era 12,65 px a 800: il testo piu' piccolo
+   dello schermo, e l'unico corpo che in presentazione cresceva meno della scala generale — cioe'
+   una regola scritta per la proiezione che faceva l'opposto di cio' per cui la modalita' esiste.
+   E' anche l'unica chiave di lettura del righello fra i 641 e i 1000 px, dove i nomi delle tacche
+   sono gia' caduti per larghezza. Il vuoto verticale si recupera dal `gap` qui sopra, non dal
+   corpo delle parole. */
+body[data-modalita='presentazione'] .righello__legenda .prestampa { font-size: 0.7rem; }
+
+.fascia::after {
+  /* La seconda riga della doppia rigatura: e' cosi' che si chiude un registro. */
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0; right: 0; bottom: -6px;
+  height: 1px;
+  background: var(--inchiostro);
+}
+
+/* LA FASCIA SI ASCIUGA DOPO IL PRIMO SCORRIMENTO, su una colonna sola.
+   A 390x844 la fascia appiccicata misurava 430 px: metà schermo occupata per tutta la lettura,
+   con 414 px lasciati al fascicolo. Su un foglio protocollo l'intestazione si stampa in cima al
+   foglio, non si ripete a ogni riga: appena si comincia a leggere restano il righello, le sue
+   tacche e il comando che porta all'atto successivo — cioè ciò che si guarda mentre la voce
+   spiega e ciò che serve per andare avanti. Testata, indice dei dodici atti, legenda e conti
+   tornano tutti risalendo in cima, che è un colpo di pollice.
+   Lo scrive pagina.js su [data-scorso] del <body>: il CSS non sa dov'è lo scorrimento. */
+/* `:not(:focus-within)` NON e' un vezzo, ed e' l'unica cosa che qui non e' ovvia. L'indice dei
+   dodici atti e la testata contengono BOTTONI. Nascondere con `display:none` un elemento che in
+   quel momento ha dentro di se' il fuoco lo fa perdere: chi stava tabulando sull'indice, appena
+   la pagina scorre, si ritrova il fuoco sul <body> e ricomincia da capo. Con questa clausola
+   l'elemento resta finche' il fuoco e' suo, e sparisce appena se ne va — che e' la stessa regola
+   che vale per una tendina aperta. Raggiungerlo di nuovo da tastiera vuol dire risalire in cima,
+   dove del resto sta: l'unico comando indispensabile — quello che registra l'atto seguente —
+   resta in pagina, e i bottoni dell'indice che non sono disabilitati sono esattamente quelli. */
+@media (max-width: 1079px) {
+  body[data-scorso='si'] .testata__ente,
+  body[data-scorso='si'] .testata__titolo,
+  body[data-scorso='si'] .rubrica__indice:not(:focus-within),
+  body[data-scorso='si'] .righello__legenda,
+  body[data-scorso='si'] .righello__conti { display: none; }
+
+  body[data-scorso='si'] .testata { margin-bottom: 0.35rem; }
+  body[data-scorso='si'] .righello { margin-bottom: 0.35rem; }
+}
+
+/* Sotto i 640 px cadono anche i tre comandi di servizio, e solo li': e' l'unica larghezza in cui
+   non ci stanno. Il prezzo e' che da tastiera si raggiungono risalendo in cima — dove del resto
+   stanno — ed e' il motivo per cui sopra i 640 restano. */
+@media (max-width: 639px) {
+  body[data-scorso='si'] .testata:not(:focus-within) { display: none; }
+}
+
+/* A decidere quanto fascicolo resta da leggere e' l'ALTEZZA della finestra, non la larghezza:
+   un portatile 1280x900 in presentazione ha la fascia larga quanto un proiettore e trecento
+   pixel in meno sotto. Su una finestra bassa, appena si scorre, cade anche li' l'intestazione —
+   ma solo quella: legenda, conti e tacche restano, perche' sono la chiave di lettura del
+   righello e in presentazione non si tolgono le parole. */
+@media (max-height: 950px) {
+  body[data-modalita='presentazione'][data-scorso='si'] .testata__ente,
+  body[data-modalita='presentazione'][data-scorso='si'] .testata__titolo { display: none; }
+  body[data-modalita='presentazione'][data-scorso='si'] .testata { margin-bottom: 0.25rem; }
+}
+
+/* --- testata --- */
+
+.testata {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.testata__ente {
+  margin: 0;
+  padding-right: 1rem;
+  border-right: 1px solid var(--rigo);
+}
+
+.testata__titolo {
+  margin: 0;
+  font-family: var(--serif-titoli);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+}
+
+.testata__comandi {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 700px) {
+  .testata__ente { border-right: 0; padding-right: 0; }
+  .testata__comandi { margin-left: 0; width: 100%; }
+}
+
+/* --- bottoni di servizio --- */
+
+.bottone {
+  appearance: none;
+  background: var(--carta);
+  border: 1px solid var(--inchiostro-2);
+  border-radius: 0;
+  padding: 0.35rem 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 120ms linear, color 120ms linear;
+}
+
+.bottone:hover:not(:disabled) { background: var(--timbro-velo); }
+.bottone:disabled { color: var(--inchiostro-3); border-color: var(--rigo); cursor: not-allowed; }
+
+.bottone--modalita {
+  border-color: var(--timbro);
+  color: var(--timbro);
+  display: inline-flex;
+  gap: 0.5ch;
+  align-items: baseline;
+}
+.bottone--modalita b { font-weight: 700; }
+.bottone--modalita span { color: var(--inchiostro-3); font-weight: 400; }
+
+/* --- il righello dei byte: l'elemento firma condiviso --- */
+
+.righello { margin: 0 0 0.45rem; }
+
+.righello__intestazione {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.4rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.righello__conti {
+  /* E' un <p>, e il margine predefinito di 1em di un <p> in un contenitore flex NON collassa:
+     entra nella dimensione della riga. Nella fascia appiccicata valeva quaranta pixel di vuoto
+     a 1920 in presentazione, con dentro una riga di testo alta venticinque. */
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--inchiostro-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.righello__conti b { font-weight: 700; color: var(--inchiostro); }
+
+.righello__barra {
+  position: relative;
+  /* In rem, non in px: la fascia e' l'elemento firma della pagina e deve crescere con la
+     modalita' come cresce il testo (22 px in studio, 32-38 px in presentazione). */
+  height: 1.375rem;
+  background: var(--carta-alta);
+  border: 1px solid var(--inchiostro-2);
+  overflow: visible;
+}
+
+.segmento {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  min-width: 1px;
+}
+
+/* Asse 2 — firmato: il tratto e' pieno. */
+.segmento[data-coperto='si'][data-kind='object']    { background: var(--inchiostro); }
+.segmento[data-coperto='si'][data-kind='structure'] { background: var(--inchiostro-2); }
+
+/* Asse 2 — non firmato: il tratto e' vuoto, come una casella non compilata.
+   Il filetto che separa un segmento dall'altro pero' e' inchiostro, non sbiadito: ai primi
+   quattro atti TUTTI i segmenti sono non coperti, quindi quel filetto e' l'unica cosa che
+   disegna la mappa anatomica del file. Con --rigo stava a 1,94:1 sulla carta alta e la fascia
+   era una casella vuota senza divisioni. La casella resta vuota — il fondo non cambia — ma le
+   divisioni si vedono. */
+.segmento[data-coperto='no'][data-kind='object'],
+.segmento[data-coperto='no'][data-kind='structure'] {
+  background: var(--carta-alta);
+  border-left: 1px solid var(--inchiostro-3);
+}
+
+/* Il buco /Contents: un vuoto tratteggiato, non un colore in piu'. */
+.segmento[data-kind='hole'] {
+  background: var(--tratteggio-buco);
+  border-left: 1px solid var(--inchiostro-2);
+  border-right: 1px solid var(--inchiostro-2);
+}
+
+/* La coda spunta FUORI dalla parte colorata: sotto la fascia, non dentro. */
+.segmento[data-kind='tail'] {
+  background: var(--tratteggio-coda);
+  border: 1px solid var(--avviso);
+  bottom: -0.55rem;
+  z-index: 2;
+}
+
+.righello__tacche {
+  position: relative;
+  height: 3rem;
+  margin-top: 0.6rem;
+}
+
+/* In presentazione le tacche portano ancora i nomi (vedi sotto): serve la riga in piu'. */
+body[data-modalita='presentazione'] .righello__tacche { height: 2.3rem; }
+
+.tacca {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  text-align: center;
+  white-space: nowrap;
+}
+.tacca[data-bordo='destro'] { transform: translateX(-100%); text-align: right; }
+.tacca[data-bordo='sinistro'] { transform: none; text-align: left; }
+
+/* Le tacche si scaglionano allungando l'asta, non spostando il testo: cosi' ognuna resta
+   attaccata al byte che indica anche quando due cadono vicine. */
+.tacca__asta {
+  display: block;
+  width: 1px;
+  height: 7px;
+  margin: 0 auto -1px;
+  background: var(--inchiostro-2);
+}
+.tacca[data-bordo='destro'] .tacca__asta { margin-right: 0; }
+.tacca[data-bordo='sinistro'] .tacca__asta { margin-left: 0; }
+
+.tacca__riga { display: block; line-height: 1.25; }
+.tacca__numero {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  color: var(--inchiostro);
+}
+.tacca__nome {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--inchiostro-3);
+  font-style: normal;
+}
+
+/* Il righello e' la cosa che l'aula guarda mentre la voce spiega: in presentazione le sue due
+   scritte crescono piu' della scala, perche' un numero senza il suo nome non dice niente. */
+body[data-modalita='presentazione'] .tacca__numero { font-size: 0.8rem; }
+body[data-modalita='presentazione'] .tacca__nome { font-size: 0.72rem; }
+.tacca__nome::before { content: ' · '; }
+.tacca[data-kind='tail'] .tacca__asta { background: var(--avviso); }
+.tacca[data-kind='tail'] .tacca__nome { color: var(--avviso); }
+.tacca[data-kind='tail'] .tacca__numero { color: var(--avviso); font-weight: 700; }
+
+/* I nomi delle tacche spariscono per LARGHEZZA, mai per modalita'. Sotto i 1000 px «Inizio del
+   buco /Contents» e «Fine della copertura» finirebbero una sopra l'altra e il nome lo dice la
+   legenda; sopra, restano — e in presentazione restano a maggior ragione, perche' e' li' che
+   qualcuno deve leggerli da lontano. La regola che li toglieva in presentazione faceva
+   esattamente il contrario di cio' per cui la modalita' esiste. */
+@media (max-width: 1000px) {
+  .tacca__nome { display: none; }
+}
+
+/* Va DOPO le regole per `kind`: hanno la stessa specificita', e qui decide l'ordine. Senza
+   questa riga la tacca «Fine della copertura», che dopo l'attacco 2 e' di kind `tail`, tornava
+   sulla prima riga e finiva sotto quella «Fine del file». */
+.tacca[data-riga='1'] .tacca__asta { height: 26px; }
+
+.righello[data-vuoto='si'] .righello__tacche { height: 0; margin-top: 0; }
+
+.righello__legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem 1rem;
+  min-width: 0;
+}
+.legenda__voce { display: inline-flex; align-items: center; gap: 0.45ch; }
+.righello__legenda .prestampa { font-size: 0.62rem; letter-spacing: 0.1em; }
+.legenda__campione {
+  display: inline-block;
+  width: 1.5ch;
+  height: 0.75em;
+  border: 1px solid var(--inchiostro-2);
+}
+.legenda__campione[data-coperto='si'][data-kind='object'] { background: var(--inchiostro); }
+.legenda__campione[data-coperto='si'][data-kind='structure'] { background: var(--inchiostro-2); }
+.legenda__campione[data-coperto='no'][data-kind='object'] { background: var(--carta-alta); }
+.legenda__campione[data-kind='hole'] { background: var(--tratteggio-buco); }
+.legenda__campione[data-kind='tail'] { background: var(--tratteggio-coda); border-color: var(--avviso); }
+
+/* La legenda e' la chiave di lettura della fascia: nomina il buco /Contents e la coda non
+   coperta, che sono le due cose che la demo deve far vedere. In presentazione RESTA — era il
+   secondo posto in cui la modalita' fatta per essere proiettata toglieva le parole invece di
+   ingrandirle. Sotto i 640 px sparisce per larghezza, insieme al resto della fascia asciutta. */
+@media (max-width: 640px) {
+  .righello__legenda { display: none; }
+  /* Senza legenda c'e' spazio per una riga in piu': meglio andare a capo che troncare la
+     lunghezza del file con dei puntini. */
+  .righello__conti { white-space: normal; overflow: visible; }
+}
+.righello__vuoto { color: var(--inchiostro-3); }
+
+/* --- la rubrica: i dodici atti, e il comando --- */
+
+.rubrica {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rubrica__indice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  border: 1px solid var(--rigo);
+  padding: 2px;
+  background: var(--carta-alta);
+}
+
+.atto {
+  appearance: none;
+  min-width: 2.4ch;
+  padding: 0.25rem 0.35rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--inchiostro-3);
+  cursor: pointer;
+  line-height: 1.1;
+}
+.atto[data-stato='fatto'] {
+  background: var(--inchiostro);
+  color: var(--carta);
+}
+.atto[data-stato='prossimo'] {
+  border-color: var(--timbro);
+  color: var(--timbro);
+  font-weight: 700;
+  background: var(--carta);
+}
+.atto[data-stato='prossimo']:hover { background: var(--timbro-velo); }
+.atto[data-stato='corso'] {
+  border-color: var(--timbro);
+  color: var(--timbro);
+  background: var(--timbro-velo);
+}
+.atto:disabled { cursor: default; }
+
+/* Sotto i 1080 px l'indice dei dodici atti prende una riga tutta sua e lascia al comando la
+   larghezza intera. Prima si spartivano la stessa riga e al comando restavano 92 px: il titolo
+   dell'atto ci finiva dentro troncato con i puntini a ognuno dei dodici passi. */
+@media (max-width: 1079px) {
+  .rubrica__indice { flex: 1 1 100%; justify-content: flex-start; }
+  .comando { flex-basis: 100%; }
+}
+
+.comando {
+  appearance: none;
+  flex: 1 1 22ch;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.8ch;
+  padding: 0.4rem 0.9rem;
+  background: var(--timbro);
+  color: #f4f3ee;
+  border: 1px solid var(--timbro);
+  border-radius: 0;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 120ms linear;
+}
+.comando:hover:not(:disabled) { background: #22307c; }
+.comando:disabled {
+  background: var(--carta-alta);
+  color: var(--inchiostro-3);
+  border-color: var(--rigo);
+  cursor: not-allowed;
+}
+.comando__azione {
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  white-space: nowrap;
+}
+/* Il titolo del prossimo atto VA A CAPO. Troncarlo con i puntini era la scelta sbagliata: il
+   bottone ha spazio verticale da vendere e «Dimostr…» non e' un comando, e' un indovinello. */
+.comando__titolo {
+  font-family: var(--serif-titoli);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+/* Sotto i 640 px il comando si sfoglia in due righe: la prestampa sopra, il titolo sotto a
+   larghezza piena. Affiancati, al titolo restavano centoquaranta pixel. */
+@media (max-width: 640px) {
+  .comando { flex-wrap: wrap; align-items: baseline; }
+  .comando__titolo { flex: 1 1 100%; }
+}
+
+/* Il guasto, detto dove si guarda. */
+.errore {
+  margin: 0.5rem 0 0;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--protocollo);
+  border-left-width: 5px;
+  background: var(--protocollo-velo);
+  color: var(--protocollo);
+  font-family: var(--mono);
+  font-size: 0.74rem;
+}
+.errore[hidden] { display: none; }
+
+/* =========================================================================
+   2. IL BANCO — fascicolo a sinistra, allegato a destra
+   ========================================================================= */
+
+.banco {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'allegato' 'fascicolo';
+  gap: 1.2rem;
+  padding: 1.2rem clamp(0.6rem, 2.5vw, 2rem) 5rem;
+  align-items: start;
+  /* Il fascicolo non si allarga all'infinito: oltre questa misura il cartoncino resta scoperto
+     ai due lati, che e' come un fascicolo sta su una scrivania. In presentazione il corpo del
+     testo e' molto piu' grande e il tetto, misurato in rem, si alza da se'. */
+  max-width: 88rem;
+  margin-inline: auto;
+}
+
+@media (min-width: 1080px) {
+  .banco {
+    /* La colonna dell'allegato ha un tetto in rem E uno in vw: e' una PROPORZIONE della
+       scrivania, non un multiplo del corpo del testo. Con il solo tetto in rem, a 1280 in
+       presentazione si prendeva 600 px dei 1280 e all'atto ne restavano 620, con il tenore
+       ridotto a cinque parole per riga e mezzo foglio bianco accanto. */
+    grid-template-columns: minmax(0, 1fr) minmax(260px, min(24rem, 32vw));
+    grid-template-areas: 'fascicolo allegato';
+    gap: 1.6rem;
+  }
+}
+
+.fascicolo { grid-area: fascicolo; display: flex; flex-direction: column; gap: 1.1rem; }
+.allegato-colonna { grid-area: allegato; }
+
+@media (min-width: 1080px) {
+  .allegato-colonna {
+    position: sticky;
+    top: calc(var(--fascia-h) + 1rem);
+  }
+}
+
+/* =========================================================================
+   3. IL FOGLIO — un atto, con il suo margine di protocollo
+   ========================================================================= */
+
+.foglio {
+  display: grid;
+  grid-template-columns: var(--margine-foglio) minmax(0, 1fr);
+  background: var(--carta);
+  border: 1px solid var(--rigo);
+  scroll-margin-top: calc(var(--fascia-h) + 1.3rem);
+}
+
+.foglio__margine {
+  position: relative;
+  padding: 0.9rem 0.4rem;
+  text-align: center;
+  border-right: 1px solid var(--timbro);
+}
+/* La seconda riga: la doppia rigatura verticale della carta protocollo. */
+.foglio__margine::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; right: 3px;
+  width: 1px;
+  background: var(--timbro);
+  opacity: 0.55;
+}
+
+.foglio__numero {
+  display: block;
+  font-family: var(--serif-titoli);
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--timbro);
+  letter-spacing: 0.04em;
+}
+.foglio__marca {
+  display: block;
+  margin-top: 0.35rem;
+  writing-mode: horizontal-tb;
+}
+
+.foglio[data-tipo='nota'] .foglio__numero { font-size: 1rem; letter-spacing: 0.16em; }
+
+/* Sotto i 560 px il margine di protocollo si stringe e tiene solo il numero: «ATTO» non ci sta
+   piu' senza sbordare, e il numero da solo dice gia' di che cosa si tratta. Va DOPO le regole
+   che sovrascrive: hanno la stessa specificita'. */
+@media (max-width: 560px) {
+  .foglio { --margine-foglio: 2.4rem; }
+  .foglio__marca { display: none; }
+  .foglio__margine { padding: 0.7rem 0.15rem; }
+  .foglio__numero { font-size: 1rem; letter-spacing: 0; }
+}
+
+.foglio__corpo { padding: 1.1rem clamp(0.9rem, 2vw, 1.8rem) 1.3rem; min-width: 0; }
+
+.foglio__testata { margin-bottom: 0.7rem; }
+
+.occhiello { margin: 0 0 0.25rem; }
+
+.titolo {
+  margin: 0;
+  font-family: var(--serif-titoli);
+  font-size: 1.55rem;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.006em;
+}
+
+.foglio__filetto {
+  height: 0;
+  border: 0;
+  border-top: 2px solid var(--inchiostro);
+  margin: 0.55rem 0 0.85rem;
+}
+
+.corpo { max-width: var(--misura); }
+.corpo p { margin: 0 0 0.75rem; }
+.corpo p:last-child { margin-bottom: 0; }
+.corpo p:first-child {
+  font-size: 1.12rem;
+  line-height: 1.45;
+}
+/* In presentazione questo e' l'UNICO paragrafo che resta a schermo: puo' permettersi di essere
+   piu' del corpo, oltre alla scala della radice. (La regola di prima ripeteva 1.12rem, cioe'
+   era una regola scritta per ingrandire che non ingrandiva niente: la scala non passava di qui.) */
+body[data-modalita='presentazione'] .corpo p:first-child { font-size: 1.25rem; }
+
+/* Presentazione: occhiello + titolo + PRIMO paragrafo. */
+body[data-modalita='presentazione'] .corpo p:not(:first-child) { display: none; }
+
+/* =========================================================================
+   4. LA SCHEDA — i dati dell'atto, in modulistica
+   ========================================================================= */
+
+.scheda {
+  display: grid;
+  /* L'etichetta prende la sua larghezza naturale ma non oltre il 58 % della scheda. Con
+     `max-content` una sola etichetta lunga — «Il buco dichiarato coincide con quello vero» —
+     decideva la colonna per tutte, e al valore restavano novanta pixel: «1.000.» / «000» /
+     «euro», una parola per riga. Si vedeva solo con il corpo grande, cioe' da quando la
+     presentazione ingrandisce davvero. */
+  grid-template-columns: fit-content(58%) minmax(0, 1fr);
+  gap: 0 1.2rem;
+  margin: 1rem 0 0;
+}
+
+@media (max-width: 620px) {
+  .scheda { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
+
+.scheda dt {
+  padding: 0.3rem 0 0.28rem;
+  border-bottom: 1px dotted var(--rigo);
+}
+.scheda dd {
+  margin: 0;
+  padding: 0.3rem 0 0.28rem;
+  border-bottom: 1px dotted var(--rigo);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 620px) {
+  /* A una colonna l'etichetta non deve piu' tenere allineata nessuna colonna: le si toglie il
+     filetto, che a questo punto raddoppierebbe quello del valore. */
+  .scheda dt { border-bottom: 0; padding-bottom: 0; }
+}
+.scheda dd b { font-weight: 700; }
+.scheda dd em { font-style: normal; color: var(--inchiostro-3); }
+
+body[data-modalita='presentazione'] [data-densita='studio'] { display: none; }
+
+/* Il tenore dell'atto: le righe del documento, in serif, dentro un riquadro. */
+.tenore {
+  margin: 1rem 0 0;
+  padding: 0.8rem 1rem;
+  background: var(--carta-alta);
+  border: 1px solid var(--rigo);
+  border-left: 3px solid var(--inchiostro);
+  font-family: var(--serif-titoli);
+  font-size: 0.95rem;
+  white-space: pre-wrap;
+  line-height: 1.4;
+}
+
+.citazione {
+  font-family: var(--serif-titoli);
+  font-size: 1.05rem;
+  background: var(--carta-alta);
+  border-bottom: 2px solid var(--inchiostro);
+  padding: 0.05em 0.3em;
+}
+
+/* =========================================================================
+   5. IL VERDETTO — colore, forma e parola insieme
+   ========================================================================= */
+
+.timbro {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6ch;
+  padding: 0.35rem 0.75rem;
+  border: 2px solid currentColor;
+  background: var(--carta);
+  transform: rotate(-1.2deg);
+  font-family: var(--mono);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.15;
+  max-width: 100%;
+}
+.timbro__segno {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  border: 2px solid currentColor;
+  font-size: 0.95em;
+  flex: none;
+}
+.timbro__parola { overflow-wrap: anywhere; }
+
+.timbro[data-verdetto='valid'] { color: var(--sigillo); background: var(--sigillo-velo); border-style: double; border-width: 4px; }
+.timbro[data-verdetto='extended'] { color: var(--avviso); background: var(--avviso-velo); border-style: dashed; }
+.timbro[data-verdetto='extended'] .timbro__segno { border-style: dashed; }
+.timbro[data-verdetto='invalid'] { color: var(--protocollo); background: var(--protocollo-velo); border-width: 3px; }
+.timbro[data-verdetto=''] , .timbro[data-verdetto='assente'] {
+  color: var(--inchiostro-3);
+  background: var(--carta-alta);
+  border-style: dotted;
+  transform: none;
+}
+
+/* IL TIMBRO VIVO E' LA RISPOSTA, e si legge per primo.
+   Quelli congelati nei pannelli sono storia gia' scritta e seguono la scala della radice; questo
+   cambia quando scatta un attacco, ed e' la cosa per cui la demo esiste. Prende quindi un corpo
+   proprio e la larghezza intera della sua colonna — IN TUTTE E DUE LE MODALITA'. La prima
+   riparazione della gerarchia era scritta solo per la presentazione, e in studio restava vero il
+   rilievo che aveva aperto: a 1280 il verdetto vivo misurava 7.828 px2 contro i 19.425 del titolo
+   di un atto, cioe' la risposta era l'elemento piu' piccolo dello schermo. Studio e' la modalita'
+   densa, non la modalita' in cui la conclusione e' una didascalia. */
+.allegato__verdetto .timbro {
+  display: flex;
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.5rem 0.8rem;
+  letter-spacing: 0.08em;
+}
+
+body[data-modalita='presentazione'] .allegato__verdetto {
+  padding: 1.1rem 0.8rem 1.2rem;
+}
+body[data-modalita='presentazione'] .allegato__verdetto .timbro {
+  display: flex;
+  width: 100%;
+  font-size: 1.45rem;
+  padding: 0.6rem 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+/* I tre controlli: segno + parola, uno per riga. */
+.controlli { display: flex; flex-direction: column; gap: 0.2rem; margin: 0.9rem 0 0; padding: 0; list-style: none; }
+.controllo { display: flex; align-items: baseline; gap: 0.6ch; font-family: var(--mono); font-size: 0.78rem; }
+.controllo__segno {
+  display: inline-block;
+  width: 1.5em;
+  text-align: center;
+  border: 1px solid currentColor;
+  flex: none;
+  font-weight: 700;
+}
+.controllo[data-esito='si'] { color: var(--sigillo); }
+.controllo[data-esito='no'] { color: var(--protocollo); }
+.controllo[data-esito='parziale'] { color: var(--avviso); }
+.controllo__nome { text-transform: uppercase; letter-spacing: 0.1em; color: var(--inchiostro-3); }
+.controllo__esito { font-weight: 700; }
+
+/* Le due impronte a confronto: attesa contro riscontro. */
+.confronto { margin: 0.9rem 0 0; border: 1px solid var(--rigo); }
+.confronto__riga { display: grid; grid-template-columns: fit-content(45%) minmax(0, 1fr); gap: 0 1rem; padding: 0.4rem 0.7rem; }
+.confronto__riga + .confronto__riga { border-top: 1px dotted var(--rigo); }
+.confronto__valore { font-family: var(--mono); font-size: 0.75rem; overflow-wrap: anywhere; }
+/* Come la scheda: sotto i 620 px l'etichetta prende la sua riga. A due colonne la prima e'
+   `max-content` e «RISCONTRATA ADESSO» si mangiava tutto, lasciando all'impronta la larghezza di
+   un carattere — sessantaquattro righe da una cifra. Si vede solo quando il corpo cresce
+   davvero, cioe' da quando la presentazione ingrandisce per davvero. */
+@media (max-width: 620px) {
+  .confronto__riga { grid-template-columns: minmax(0, 1fr); gap: 0.15rem 0; }
+}
+.confronto[data-uguali='no'] .confronto__riga:last-child .confronto__valore { color: var(--protocollo); font-weight: 700; }
+.confronto[data-uguali='si'] .confronto__valore { color: var(--sigillo); }
+
+/* =========================================================================
+   6. APRI E CHIUDI — hex e ASN.1, veri e leggibili
+   ========================================================================= */
+
+.apri { margin: 1rem 0 0; border: 1px solid var(--rigo); background: var(--carta-alta); }
+.apri + .apri { margin-top: 0.5rem; }
+
+.apri > summary {
+  cursor: pointer;
+  padding: 0.4rem 0.7rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--timbro);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.7ch;
+}
+.apri > summary::-webkit-details-marker { display: none; }
+.apri > summary::before { content: '▸'; font-size: 0.9em; }
+.apri[open] > summary::before { content: '▾'; }
+.apri > summary:hover { background: var(--timbro-velo); }
+
+.apri__contenuto { padding: 0.6rem 0.7rem 0.8rem; border-top: 1px solid var(--rigo); background: var(--carta); }
+
+/* --- il dump --- */
+
+.dump { overflow-x: auto; container-type: inline-size; container-name: dump; }
+
+.dump__legenda { display: flex; flex-direction: column; gap: 0.15rem; margin-bottom: 0.5rem; }
+.dump__voce { display: flex; align-items: baseline; gap: 0.6ch; }
+.dump__bollo {
+  display: inline-block;
+  width: 1.4ch; height: 0.85em;
+  flex: none;
+  border: 1px solid var(--inchiostro-2);
+}
+.dump__testo { font-family: var(--mono); font-size: 0.68rem; color: var(--inchiostro-2); letter-spacing: 0.02em; }
+
+.dump__griglia {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  display: inline-grid;
+  grid-template-columns: 9.5ch repeat(16, 2.7ch) 1.6ch repeat(16, 1.2ch);
+  white-space: pre;
+}
+
+/* IL DUMP VA A CAPO: prima i byte, sotto le lettere.
+   Una riga sola di dump chiede 73,5 ch — offset, sedici coppie esadecimali, colonna ASCII — e in
+   presentazione a 1280 ne stavano 564 px su 796 richiesti: il 71 % della griglia, e cio' che
+   restava fuori era proprio la colonna ASCII. In una demo che dimostra come «mille» diventi
+   «novemila», la colonna in cui quelle parole si LEGGONO e' l'ultima da cui si puo' scorciare, e
+   `overflow-x` non la annunciava in nessun modo.
+   Sedici byte per riga non si toccano: e' il contratto del ViewModel, e gli offset sono multipli
+   di sedici. Si spezza invece la riga in due: la stessa sedicina va a capo e ogni lettera cade
+   ESATTAMENTE sotto la sua coppia esadecimale, che e' l'incolonnamento che nel dump largo si
+   deve fare con l'occhio. Non serve una riga di JavaScript: le celle sono gia' nell'ordine
+   giusto, e basta togliere alla griglia le colonne dell'ASCII perche' vadano a capo da sole —
+   lo spazio separatore cade dove nella riga di sopra sta l'offset, e resta vuoto.
+   Anche qui la soglia e' in `em` su una container query e non in px su una media query: la
+   larghezza a cui il dump smette di starci dipende dalla modalita', non dalla finestra. */
+@container dump (max-width: 30em) {
+  /* La colonna degli offset si stringe da 9,5 a 9 ch: otto cifre piu' uno di respiro. Il mezzo
+     carattere recuperato e' quello che a 1280 in presentazione fa stare la griglia dentro la
+     colonna invece che dieci pixel oltre. */
+  .dump__griglia { grid-template-columns: 9ch repeat(16, 2.6ch); }
+}
+.dump__offset { color: var(--inchiostro-3); }
+.dump__cella { text-align: center; }
+.dump__ascii { text-align: center; }
+/* Il byte non stampabile si distingue per GLIFO — un punto medio invece del punto fermo, lo
+   sceglie esadecimale.js — non per sbiadimento. Attenuarlo con --rigo lo portava a 1,76:1, cioe'
+   invisibile: era l'unico testo sotto soglia della pagina, e distingueva proprio la cosa che si
+   legge in un dump. Il tono resta piu' leggero dell'inchiostro pieno, ma sopra 4,5:1. */
+.dump__ascii[data-stampabile='no'] { color: var(--inchiostro-3); }
+
+/* I sei kind, sei modi diversi di marcare. Chi ne ha due, vince il piu' recente. */
+[data-hl='object']    { color: var(--timbro); box-shadow: inset 0 -2px 0 var(--timbro); }
+[data-hl='structure'] { color: var(--inchiostro-2); box-shadow: inset 0 -2px 0 var(--inchiostro-2); }
+[data-hl='tail']      { background: var(--avviso-pieno); color: var(--inchiostro); }
+[data-hl='target']    { color: var(--timbro); box-shadow: inset 0 0 0 1px var(--timbro); }
+[data-hl='changed']   { background: var(--protocollo); color: var(--carta); font-weight: 700; }
+
+/* IL BUCO /Contents — la casella non compilata, e si deve VEDERE che e' una casella.
+   Il velo da solo stava a 1,15:1 sulla carta e il suo filetto a 1,52:1 sul velo (2,02:1 in
+   presentazione): su un proiettore l'oggetto su cui e' costruita l'intera demo — quello che la
+   legenda chiama «l'unica parte che l'impronta non copre» — era l'unica cosa che non si vedeva.
+   E' lo stesso difetto gia' riparato nel righello, e si ripara nello stesso modo: il FONDO RESTA
+   CHIARO, perche' il buco e' un vuoto e non un evidenziatore, e il TRATTO sale a inchiostro.
+
+   Due assi, non il colore da solo. Il filetto e' TRATTEGGIATO, mentre quello dell'oggetto e
+   quello della struttura sono pieni: la stessa distinzione di forma che il timbro fa gia' fra
+   `double`, `dashed` e pieno. E i due estremi del buco portano una stanghetta verticale, come il
+   segmento del righello porta i suoi bordi: dove comincia e dove finisce si legge anche in
+   bianco e nero. Le stanghette compaiono solo se l'estremo VERO cade dentro la finestra
+   mostrata; se il buco sfonda i bordi del dump, non si disegna un confine che non c'e'.
+
+   Il tratteggio e' scritto QUI DENTRO e non come variabile su :root, ed e' una precauzione, non
+   una preferenza: una custom property dichiarata su :root risolve le sue var() a :root, e
+   l'override di --inchiostro-2 su body[data-modalita='presentazione'] non la raggiungerebbe mai
+   (e' la trappola su cui --tratteggio-buco sta gia' seduto). Scritta nella regola dell'elemento,
+   risolve sull'elemento, e la modalita' la raggiunge. Misurato: 6,38:1 in studio, 9,25:1 in
+   presentazione, contro l'1,52:1 di prima. */
+[data-hl='hole'] {
+  background-color: var(--velo-buco);
+  background-image: repeating-linear-gradient(
+    90deg, var(--inchiostro-2) 0 0.34ch, var(--velo-buco) 0.34ch 0.62ch
+  );
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 100% var(--filetto-buco);
+}
+[data-hl='hole'][data-inizio] { box-shadow: inset 2px 0 0 var(--inchiostro-2); }
+[data-hl='hole'][data-fine] { box-shadow: inset -2px 0 0 var(--inchiostro-2); }
+[data-hl='hole'][data-inizio][data-fine] {
+  box-shadow: inset 2px 0 0 var(--inchiostro-2), inset -2px 0 0 var(--inchiostro-2);
+}
+
+.dump__bollo[data-hl='object'] { background: var(--carta); border-bottom: 3px solid var(--timbro); box-shadow: none; }
+.dump__bollo[data-hl='structure'] { background: var(--carta); border-bottom: 3px solid var(--inchiostro-2); box-shadow: none; }
+/* Il bollo della legenda porta lo stesso tratto della cella: filetto tratteggiato, in inchiostro.
+   Se il campione e la cosa che campiona non hanno lo stesso tratto, la legenda non e' una legenda. */
+.dump__bollo[data-hl='hole'] {
+  background: var(--velo-buco);
+  border-bottom: 3px dashed var(--inchiostro-2);
+}
+.dump__bollo[data-hl='tail'] { background: var(--avviso-pieno); }
+.dump__bollo[data-hl='target'] { background: var(--carta); border: 1px dashed var(--timbro); box-shadow: none; }
+.dump__bollo[data-hl='changed'] { background: var(--protocollo); }
+
+.dump__troncato { font-family: var(--mono); font-size: 0.68rem; color: var(--inchiostro-3); padding: 0.15rem 0; }
+
+/* --- l'albero ASN.1 --- */
+
+.asn1 { max-height: 26rem; overflow: auto; }
+.asn1__riga {
+  display: grid;
+  grid-template-columns: 6ch minmax(0, 1fr);
+  gap: 0 0.8ch;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1.55;
+  border-bottom: 1px dotted var(--rigo-tenue);
+  padding: 0.05rem 0;
+}
+.asn1__offset { color: var(--inchiostro-3); text-align: right; }
+.asn1__nodo { min-width: 0; overflow-wrap: anywhere; }
+.asn1__tag { color: var(--timbro); font-weight: 700; }
+.asn1__valore { color: var(--inchiostro); }
+.asn1__oid { color: var(--sigillo); }
+.asn1__misura { color: var(--inchiostro-3); }
+.asn1__guasto { color: var(--protocollo); font-family: var(--mono); font-size: 0.75rem; }
+
+/* =========================================================================
+   7. L'ALLEGATO — il documento come lo vede un lettore, adesso
+   ========================================================================= */
+
+.allegato { background: var(--carta); border: 1px solid var(--rigo); }
+
+.allegato__testata {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 2px solid var(--inchiostro);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.allegato__stato { font-family: var(--mono); font-size: 0.78rem; }
+.allegato__misura { font-family: var(--mono); font-size: 0.7rem; color: var(--inchiostro-3); }
+
+.allegato__foglio {
+  padding: 0.8rem;
+  background: var(--fascicolo);
+  display: flex;
+  justify-content: center;
+}
+.allegato__canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 30rem;
+  background: #fff;
+  border: 1px solid var(--inchiostro-2);
+}
+.allegato__canvas[hidden] { display: none; }
+
+.allegato__vuoto,
+.allegato__guasto {
+  padding: 1.4rem 0.9rem;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--inchiostro-3);
+}
+.allegato__guasto { color: var(--protocollo); }
+
+.allegato__avvisi { padding: 0.6rem 0.8rem; border-top: 1px solid var(--rigo); }
+.allegato__avvisi ul { margin: 0.25rem 0 0; padding-left: 1.1rem; }
+.allegato__avvisi li { font-family: var(--mono); font-size: 0.68rem; color: var(--avviso); overflow-wrap: anywhere; }
+
+.allegato__verdetto { padding: 0.7rem 0.8rem; border-top: 1px solid var(--rigo); }
+
+/* =========================================================================
+   8. LA TABELLA DI CHIUSURA
+   ========================================================================= */
+
+.riepilogo { width: 100%; border-collapse: collapse; margin-top: 1rem; font-family: var(--mono); font-size: 0.72rem; }
+.riepilogo th, .riepilogo td { text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--rigo); }
+.riepilogo th { text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.64rem; color: var(--inchiostro-3); font-weight: 500; border-bottom: 2px solid var(--inchiostro); }
+.riepilogo td[data-verdetto='valid'] { color: var(--sigillo); font-weight: 700; }
+.riepilogo td[data-verdetto='extended'] { color: var(--avviso); font-weight: 700; }
+.riepilogo td[data-verdetto='invalid'] { color: var(--protocollo); font-weight: 700; }
+
+/* Nella forma a tabella l'etichetta della colonna sta in cima alla colonna, non dentro la cella. */
+.riepilogo__etichetta { display: none; }
+
+/* L'involucro resta scorrevole come rete di sicurezza — un titolo d'atto lunghissimo non deve
+   mai poter allargare il foglio — ma non e' piu' LUI a reggere il caso stretto: sotto la soglia
+   la tabella smette di essere una tabella. */
+.riepilogo__involucro {
+  overflow-x: auto;
+  container-type: inline-size;
+  container-name: riepilogo;
+}
+
+/* LA TABELLA SI SFOGLIA IN SCHEDE quando le sette colonne non ci stanno.
+   Misurato prima: a 1280x900 in presentazione la tabella chiedeva 753 px in un involucro di 601
+   e finivano fuori «Coda» e «Copertura»; a 800 finiva fuori «Copertura»; a 390 ne finivano fuori
+   cinque su sette e il verdetto si spezzava a meta' parola («✓ Va…», «✕ N…»). E' la schermata in
+   cui si tirano le somme: il verdetto non si tronca, e niente sparisce senza che si veda.
+
+   PERCHE' UNA CONTAINER QUERY E NON UNA MEDIA QUERY, ed e' il punto della riparazione. La
+   larghezza a cui la tabella smette di starci non e' una larghezza di finestra: dipende dalla
+   MODALITA', perche' in presentazione la radice passa da 16 a 23-28 px e la stessa tabella ne
+   chiede il 40 % in piu' dentro una colonna che nel frattempo si e' stretta. A 1280 la tabella ci
+   sta in studio (681 in 681) e non ci sta in presentazione (753 in 601): due regole di media
+   diverse, una per modalita', sarebbero state due sintomi curati a mano. Qui la soglia e' scritta
+   in `em` e l'`em` la risolve il contenitore, cioe' cresce con la modalita' da se': 30em valgono
+   480 px in studio e 690-840 px in presentazione. Una riga sola, e la commutazione avviene sempre
+   dove la tabella smette davvero di starci.
+
+   Forma della scheda: e' quella della `.scheda` di ogni atto — etichetta prestampata a sinistra,
+   valore in monospazio a destra — perche' un registro che non ha piu' le colonne torna a essere
+   un modulo compilato riga per riga, non un'altra invenzione. L'intestazione di colonna non
+   sparisce: si ripete dentro ogni cella, che e' il motivo per cui ogni `<td>` porta la sua
+   etichetta. */
+@container riepilogo (max-width: 30em) {
+  .riepilogo,
+  .riepilogo thead,
+  .riepilogo tbody,
+  .riepilogo tr,
+  .riepilogo th,
+  .riepilogo td {
+    display: block;
+  }
+
+  /* La riga delle intestazioni non serve piu': ogni cella se la porta dietro. */
+  .riepilogo thead { display: none; }
+
+  .riepilogo tr {
+    border: 1px solid var(--rigo);
+    background: var(--carta-alta);
+    padding: 0 0.7rem 0.35rem;
+  }
+  .riepilogo tr + tr { margin-top: 0.6rem; }
+
+  /* Il titolo dell'atto e' la testata della scheda: si legge nel carattere degli atti, non in
+     quello dei dati, e chiude con il filetto pieno del registro. Il selettore porta anche `th`
+     perche' deve battere `.riepilogo th`, che qui sopra rende ogni intestazione una prestampa
+     maiuscola in grigio: giusto in cima a una colonna, sbagliato in testa a una scheda. */
+  .riepilogo th.riepilogo__atto {
+    font-family: var(--serif-titoli);
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--inchiostro);
+    padding: 0.5rem 0 0.35rem;
+    border-bottom: 2px solid var(--inchiostro);
+  }
+
+  .riepilogo td {
+    display: grid;
+    grid-template-columns: fit-content(52%) minmax(0, 1fr);
+    gap: 0 1.2rem;
+    padding: 0.3rem 0 0.28rem;
+    border-bottom: 1px dotted var(--rigo);
+  }
+  .riepilogo tr td:last-child { border-bottom: 0; }
+  .riepilogo__etichetta { display: block; }
+  .riepilogo__valore { overflow-wrap: anywhere; }
+}
+
+/* Piu' stretto ancora, l'etichetta prende la sua riga — come fa gia' la `.scheda` di ogni atto
+   sotto i 620 px, e per la stessa ragione. Affiancate, su un telefono in presentazione, al valore
+   restavano novantanove pixel e «▲ incompleta» andava a capo dentro la parola: «incomplet / a».
+   Una parola spezzata a meta' e' esattamente il difetto che questa riparazione doveva togliere. */
+@container riepilogo (max-width: 20em) {
+  .riepilogo td { grid-template-columns: minmax(0, 1fr); gap: 0.1rem 0; }
+}
+
+/* =========================================================================
+   9. IL FASCICOLO VUOTO
+   ========================================================================= */
+
+.vuoto {
+  border: 1px dashed var(--rigo);
+  background: var(--carta);
+  padding: 2.2rem 1.2rem;
+  text-align: center;
+  color: var(--inchiostro-3);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+.vuoto[hidden] { display: none; }
+
+/* =========================================================================
+   10. MOVIMENTO — poco, e spegnibile davvero
+   ========================================================================= */
+
+@media (prefers-reduced-motion: no-preference) {
+  .foglio { animation: deposita 260ms ease-out both; }
+  .segmento { transition: left 200ms linear, width 200ms linear; }
+}
+
+@keyframes deposita {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

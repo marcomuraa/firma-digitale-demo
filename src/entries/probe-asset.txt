@@ -1,0 +1,3 @@
+Sonda di build. Questo file esiste solo per dimostrare che un asset importato
+finisce nell'HTML come data URI e non come file affiancato in dist/. E il
+meccanismo da cui dipendera src/assets/sample.pdf. Vedi marcatori.js.

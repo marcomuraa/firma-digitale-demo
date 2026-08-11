@@ -1,0 +1,683 @@
+/* =============================================================================
+   Doppia esposizione — impianto: pigmenti, caratteri, griglia.
+
+   IL PRINCIPIO DA CUI DISCENDE TUTTO IL RESTO.
+
+   Le due meta' non sono due temi. Sono la stessa lastra sviluppata due volte, quindi c'e' UNA
+   scala di colore — un grigio-cyan, tinta 190 — letta a tre esposizioni:
+
+       carta   L 91 %   la stampa: il documento come lo vede un umano
+       base    L 11 %   il supporto: righello, comandi, dump. Non appartiene a nessuna meta'
+       lastra  L  4 %   il negativo: gli stessi byte come li vede la macchina
+
+   Ogni componente di questa pagina e' scritto UNA volta sola, con `var(--fondo)`,
+   `var(--testo)`, `var(--legame)`; sono le tre classi di esposizione — .positivo, .base,
+   .negativo — a ridefinire quelle variabili. Lo stesso bottone, lo stesso elenco di campi, lo
+   stesso segno di verdetto compaiono di qua e di la' senza una riga di CSS in piu': e' la tesi
+   del progetto scritta nel foglio di stile.
+
+   Il colore del LEGAME (tinta 188) e' l'unico che cambia carattere fra le due esposizioni:
+   inchiostro scuro sulla carta, fosforo chiaro sulla lastra. Stessa tinta, due esposizioni.
+   I tre verdetti stanno lontani da quella tinta apposta, e non lavorano mai da soli: accanto
+   hanno sempre una forma e una parola.
+
+   Due famiglie di caratteri, nessuna terza, e la scelta e' la stessa divisione della pagina:
+   una serif per la lettura umana, un monospazio per la lettura macchina — e il monospazio fa
+   anche da carattere degli strumenti, perche' i comandi appartengono alla macchina.
+   ========================================================================== */
+
+:root {
+  /* --- la scala unica, tre esposizioni --- */
+  --carta: #e7ebeb;
+  --carta-cupa: #dbe1e1;
+  --carta-linea: #b9c4c5;
+  --base: #151d1f;
+  --base-alta: #1f2a2c;
+  --base-linea: #2f3d3f;
+  --lastra: #070b0d;
+  --lastra-alta: #0e1719;
+  --lastra-linea: #1f2d2f;
+
+  /* --- il righello e il dump vivono sul supporto: tinte indipendenti dall'esposizione --- */
+  --r-coperto: #45cfe0;
+  --r-scoperto: #56686b;
+  --r-vuoto: #7b8f92;
+  --r-coda: #e0a63a;
+  --r-cornice: #3c4c4e;
+
+  /* --- caratteri --- */
+  --umano: "Iowan Old Style", "Charter", "Palatino Linotype", Palatino, "Book Antiqua", Georgia,
+    serif;
+  --macchina: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+    monospace;
+
+  /* --- misure --- */
+  --gutter: clamp(14px, 2.1vw, 32px);
+  --filo: 1px;
+  --raggio: 2px;
+}
+
+/* --- le tre esposizioni --------------------------------------------------
+   DUE FILI, NON UNO. `--linea` separa (bordi di riquadri, righe di tabella, filetti fra le
+   colonne): puo' essere tenue, perche' separare e' un lavoro che si fa con poco. Ma su un
+   comando il rettangolo di un pixel non separa, DICE CHE E' UN COMANDO — e in una pagina dove
+   ogni etichetta e' maiuscoletto monospazio spaziato, quel filo e' l'unica differenza
+   tipografica fra un bottone e una didascalia. Percio' i comandi hanno un filo tutto loro,
+   `--linea-comando`, tarato a >= 3:1 contro il proprio fondo nelle tre esposizioni
+   (WCAG 1.4.11 sugli elementi non testuali): misurato 3,26 sul supporto, 3,20 sulla lastra,
+   3,14 sulla carta, contro 1,52 / 1,39 / 1,49 di `--linea`. Sono tinte della stessa scala
+   grigio-cyan, solo un gradino piu' su: la direzione non si spegne, si legge. */
+
+.positivo {
+  color-scheme: light;
+  --fondo: var(--carta);
+  --fondo-alto: var(--carta-cupa);
+  --linea: var(--carta-linea);
+  --linea-comando: #78868a;
+  --testo: #0c1214;
+  --tenue: #48565a;
+  --legame: #065b68;
+  --legame-fondo: #c0e3e8;
+  --valido: #10604a;
+  --esteso: #7a4e00;
+  --invalido: #931626;
+}
+
+.negativo {
+  color-scheme: dark;
+  --fondo: var(--lastra);
+  --fondo-alto: var(--lastra-alta);
+  --linea: var(--lastra-linea);
+  --linea-comando: #546467;
+  --testo: #dae3e4;
+  --tenue: #7a8d91;
+  --legame: #62e3f3;
+  --legame-fondo: #0a3a44;
+  --valido: #56dc9f;
+  --esteso: #f5c163;
+  --invalido: #ff9aa2;
+}
+
+.base {
+  color-scheme: dark;
+  --fondo: var(--base);
+  --fondo-alto: var(--base-alta);
+  --linea: var(--base-linea);
+  --linea-comando: #5f6f72;
+  --testo: #d5e0e1;
+  --tenue: #85989c;
+  --legame: #62e3f3;
+  --legame-fondo: #0c3944;
+  --valido: #56dc9f;
+  --esteso: #f5c163;
+  --invalido: #ff9aa2;
+}
+
+/* --- i due corpi tipografici, per modalita' ------------------------------
+   DUE PIANI DI ETICHETTE, non uno. La prima stesura ne aveva uno solo (`--t-minuto`) e ci
+   faceva vivere sedici ruoli diversi: il numero di un passo e la didascalia del righello
+   avevano lo stesso corpo. Misurato in proiezione: 13 px su una sala larga due metri da 1920
+   px sono 15,5 primi d'arco a tre metri, cioe' sotto la soglia di lettura comoda — e li'
+   dentro c'erano «INIZIO DEL BUCO /CONTENTS», «8194 NEL BUCO», i nomi dei quattro controlli e
+   la legenda del dump, che sono il contenuto piu' specifico di questa direzione.
+
+     --t-minuto     il piano davvero minuto: numeri dei passi, posizione del dump, stato del
+                    documento, intestazioni di colonna. Roba che si guarda, non che si legge.
+     --t-etichetta  le etichette che PORTANO un dato: tacche del righello, voci della
+                    didascalia, nomi dei controlli e dei campi, legenda dei colori.
+     --t-verdetto   la parola che il pubblico deve portarsi a casa. Non deriva piu' da
+                    `--t-macchina`: era il testo piu' piccolo dei tre (17,3 px contro 21 del
+                    paragrafo e 32 del titolo), cioe' la conclusione detta a mezza voce. */
+
+body {
+  --t-occhiello: 10.5px;
+  --t-titolo: 22px;
+  --t-corpo: 15.5px;
+  --t-macchina: 12.5px;
+  --t-dump: 12px;
+  --t-minuto: 10.5px;
+  --t-etichetta: 11px;
+  --t-verdetto: 17px;
+  --interlinea: 1.62;
+}
+
+body[data-modalita="presentazione"] {
+  --t-occhiello: 14px;
+  --t-titolo: 32px;
+  --t-corpo: 21px;
+  --t-macchina: 16.5px;
+  --t-dump: 15px;
+  --t-minuto: 13px;
+  --t-etichetta: 17.5px;
+  --t-verdetto: 30px;
+  --interlinea: 1.5;
+}
+
+/* Le tacche del righello sono l'unico posto in cui un'etichetta piu' grande puo' far sbordare
+   la pagina: stanno in posizione assoluta sulla fascia, ancorate a una frazione del file, e
+   nessun contenitore le trattiene. Sotto i 900 px — dove la spaccatura ha gia' ruotato e la
+   pagina e' un'altra cosa — il piano etichetta scende. Sopra, cioe' a tutte le larghezze da
+   proiettore, resta alto. */
+@media (max-width: 900px) {
+  body[data-modalita="presentazione"] {
+    --t-etichetta: 14px;
+  }
+}
+
+/* =============================================================================
+   fondamenta
+   ========================================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--macchina);
+  font-size: var(--t-macchina);
+  color: #0c1214;
+  /* LA SPACCATURA. Non e' un fondo fisso alla finestra: e' il fondo del DOCUMENTO, alto quanto
+     la pagina. Cosi' la giuntura sta allo stesso posto dal primo pixel all'ultimo, anche
+     fotografata per intero, e non c'e' nessun ridisegno da fare a ogni scorrimento. */
+  background-color: var(--carta);
+  background-image: linear-gradient(90deg, var(--carta) 0 50%, var(--lastra) 50% 100%);
+}
+
+.pagina {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+/* La grana. Una lastra fotografica ce l'ha; una pagina generata da un modello no. E' l'unica
+   texture della pagina, sta sotto tutto e non tocca il testo. */
+.pagina::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  /* Le parentesi del riferimento al filtro sono percent-encoded (%28 %29) apposta: il browser
+     le decodifica quando legge il data URI, e nel foglio di stile non resta nessun `url(`
+     annidato che un controllo statico di autoconsistenza possa scambiare per un riferimento
+     esterno (scripts/build/check-selfcontained.mjs). */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url%28%23g%29' opacity='0.16'/%3E%3C/svg%3E");
+}
+
+:focus-visible {
+  outline: 2px solid var(--legame, #065b68);
+  outline-offset: 2px;
+  border-radius: var(--raggio);
+}
+
+::selection {
+  background: var(--legame-fondo, #c0e3e8);
+  color: var(--testo, #0c1214);
+}
+
+/* =============================================================================
+   il supporto: testata, righello, comandi
+   ========================================================================== */
+
+.plancia {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--fondo);
+  color: var(--testo);
+  border-bottom: var(--filo) solid #000;
+  box-shadow: 0 10px 24px -18px #000;
+}
+
+.testata {
+  display: flex;
+  align-items: center;
+  gap: var(--gutter);
+  padding: 6px var(--gutter);
+  border-bottom: var(--filo) solid var(--linea);
+  flex-wrap: wrap;
+}
+
+.testata__marchio {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7em;
+  margin-right: auto;
+}
+
+.testata__occhiello {
+  font-size: var(--t-minuto);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.testata__nome {
+  font-size: calc(var(--t-macchina) * 1.05);
+  letter-spacing: 0.06em;
+  color: var(--testo);
+}
+
+.testata__stato {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* =============================================================================
+   la griglia della doppia esposizione
+   ========================================================================== */
+
+.banco,
+.pila,
+.teoria {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+}
+
+.riga {
+  display: contents;
+}
+
+.cella {
+  padding: calc(var(--gutter) * 0.9) var(--gutter) calc(var(--gutter) * 1.05);
+  color: var(--testo);
+  min-width: 0;
+}
+
+.cella--positivo {
+  grid-column: 1;
+}
+
+.cella--negativo {
+  grid-column: 2;
+}
+
+/* L'intestazione di ciascuna colonna. All'avvio, quando non c'e' ancora niente da mostrare,
+   E' la pagina: la tesi detta in due meta', una per esposizione, una per carattere, appoggiate
+   tutte e due alla giuntura. */
+.colonna {
+  margin: 0 0 14px;
+  font-family: var(--macchina);
+  font-size: var(--t-minuto);
+  font-weight: 400;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+body[data-avvio="si"] .banco .cella {
+  padding-block: calc(var(--gutter) * 2.6) calc(var(--gutter) * 2);
+}
+
+body[data-avvio="si"] .colonna {
+  font-size: clamp(20px, 3.4vw, 46px);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--testo);
+  line-height: 1.06;
+  max-width: 15ch;
+  margin-bottom: 0;
+}
+
+body[data-avvio="si"] .colonna--positivo {
+  font-family: var(--umano);
+  margin-left: auto;
+  text-align: right;
+}
+
+/* La traccia di un passo: l'unica cosa, oltre al righello e al dump, che attraversa la
+   spaccatura. Non e' decorazione — dice il numero del passo e che cosa sono diventati i byte,
+   cioe' le due domande a cui le due colonne rispondono sotto. */
+.traccia {
+  grid-column: 1 / -1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-top: var(--filo) solid var(--carta-linea);
+  margin-top: calc(var(--gutter) * 0.4);
+}
+
+.traccia__sinistra,
+.traccia__destra {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8em;
+  padding: 8px var(--gutter);
+  font-size: var(--t-minuto);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--tenue);
+  min-width: 0;
+}
+
+.traccia__sinistra {
+  justify-content: flex-end;
+  text-align: right;
+  border-right: var(--filo) solid var(--carta-linea);
+}
+
+.traccia__destra {
+  border-left: var(--filo) solid var(--lastra-linea);
+  margin-left: -1px;
+}
+
+.traccia__numero {
+  font-size: calc(var(--t-minuto) * 1.7);
+  letter-spacing: 0.04em;
+  color: var(--legame);
+  font-variant-numeric: tabular-nums;
+}
+
+.traccia__nome {
+  color: var(--testo);
+}
+
+.traccia__byte,
+.traccia__nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- il banco ------------------------------------------------------------
+   Si appende sotto la fascia degli strumenti mentre la pila gli scorre sotto. Non e' un vezzo:
+   la tesi di questa direzione e' che le due letture si guardano INSIEME, e un documento che
+   sparisce appena si legge il pannello che lo riguarda la smentirebbe. Al momento dell'attacco 2
+   devono stare sullo schermo, contemporaneamente, il documento che e' cambiato, il righello con
+   la coda che spunta e il verdetto ambra.
+
+   MA NON SEMPRE, ed e' una correzione misurata. Appeso per tutti e dodici i passi, il banco
+   lasciava 143 px di finestra a 1280x900 in presentazione (il 16 % dello schermo) per il
+   pannello che si sta leggendo, mentre il piu' corto dei pannelli ne chiede 213: nessuno stava
+   mai a schermo intero insieme al banco, e si leggeva da una feritoia. Il confronto serve
+   quando c'e' qualcosa da confrontare — il verdetto, i tre attacchi, un punto indicato sulla
+   carta — e in quei casi soltanto resta appeso. Negli altri sette passi scorre via, e la
+   finestra torna al testo che spiega. Lo dice `body[data-appeso]`, scritto dal JavaScript
+   perche' dipende dallo stato della demo, non dalla larghezza.
+
+   L'altezza della fascia la misura il JavaScript (--plancia-h): dipende dalla modalita' e da
+   quanto vanno a capo i comandi, e indovinarla in CSS vorrebbe dire sbagliarla.
+
+   LA SPACCATURA E' DIPINTA SUL BANCO, NON SULLE CELLE, e questa e' la riparazione del difetto
+   piu' grave che questa direzione abbia avuto. Il banco e' una griglia con `align-items: start`:
+   ogni cella e' alta quanto il proprio contenuto, la scatola e' alta quanto la piu' alta delle
+   due. Con i fondi sulle celle restava una fascia senza fondo — 233 px misurati a 1280x900 —
+   in cui i pannelli della pila si vedevano attraverso il banco: i campi di un altro passo
+   comparivano dentro la lettura corrente come se fossero lo stato di adesso, e due bottoni
+   «Apri l'albero ASN.1» perfettamente visibili non ricevevano il click perche' la scatola
+   sticky se lo prendeva. Dipinta sul banco, la spaccatura copre tutta la scatola: sotto non
+   passa piu' niente, e cio' che si vede nel banco e' sempre e solo il banco. */
+
+.banco {
+  position: static;
+  z-index: 10;
+  scroll-margin-top: calc(var(--plancia-h, 0px) + 12px);
+  background-color: var(--carta);
+  background-image: linear-gradient(90deg, var(--carta) 0 50%, var(--lastra) 50% 100%);
+}
+
+body[data-appeso="si"] .banco {
+  position: sticky;
+  top: var(--plancia-h, 0px);
+  box-shadow: 0 14px 22px -20px #000;
+}
+
+/* Col dump aperto il banco supera l'altezza della finestra: restando appeso nasconderebbe per
+   sempre la propria meta' di sotto. Allora scorre, e chi ha chiesto i byte li vede tutti. */
+body[data-dump="aperto"] .banco {
+  position: static;
+  box-shadow: none;
+}
+
+/* I fondi per cella restano, e non sono ridondanti: la colonna del banco e' anche `.positivo` /
+   `.negativo` per le variabili, e senza fondo proprio un'ombra o un `color-mix` che leggesse
+   `--fondo` disegnerebbe sul niente. Sopra la spaccatura del banco combaciano esattamente. */
+.banco .cella--positivo,
+.banco .colonna--positivo {
+  background: var(--carta);
+}
+
+.banco .cella--negativo,
+.banco .colonna--negativo {
+  background: var(--lastra);
+}
+
+/* --- sotto la mobilia -----------------------------------------------------
+   Un nome solo per «il primo pixel che la mobilia appesa non copre», invece della stessa somma
+   ricopiata in cinque punti. Le due misure le scrive il JavaScript sulla `.pagina`, ed e' li' che
+   la somma va dichiarata: una custom property che ne cita altre le risolve sull'elemento in cui
+   e' scritta, e su `body` — che sta SOPRA `.pagina` — `--plancia-h` non esiste ancora. */
+.pagina {
+  --sotto-fascia: calc(var(--plancia-h, 0px) + 10px);
+  --sotto-mobilia: calc(var(--plancia-h, 0px) + var(--banco-h, 0px) + 10px);
+}
+
+/* Quando il banco non e' appeso — col dump aperto, o nei passi in cui non c'e' niente da
+   confrontare — lasciare il suo spazio libero in cima spingerebbe fuori schermo, verso l'alto,
+   proprio il pannello che si voleva portare in vista. */
+body[data-dump="aperto"] .pagina,
+body[data-appeso="no"] .pagina {
+  --sotto-mobilia: var(--sotto-fascia);
+}
+
+/* La pila scorre sotto il banco: l'inizio di un passo va portato in vista sotto, non sotto la
+   fascia.
+
+   E CON LUI TUTTO CIO' CHE PUO' PRENDERE IL FUOCO. Il browser porta in vista l'elemento che
+   riceve il fuoco solo se lo giudica fuori dalla finestra, e la fascia e il banco appesi non
+   contano: coprono, ma non restringono la finestra. Misurato a 1280x900 nello stato «verifica»,
+   l'ultimo comando della pila prendeva il fuoco a top = 590 mentre la mobilia appesa arrivava a
+   717 — un bottone col fuoco invisibile, 127 px sotto il bordo, che e' il criterio 2.4.11 di WCAG
+   2.2 mancato. Il rettangolo gonfiato dallo `scroll-margin` risolve la cosa alla radice: sporge
+   sopra il bordo, il browser lo vede fuori e scorre quel tanto che basta. Dichiararlo sui comandi
+   e non su un antenato e' voluto — dentro il banco appeso, che si muove con la finestra, non
+   serve e sarebbe di troppo. */
+.traccia,
+.riga--teoria .cella,
+.pila button,
+.pila a[href],
+.teoria button,
+.teoria a[href] {
+  scroll-margin-top: var(--sotto-mobilia);
+  scroll-margin-bottom: 16px;
+}
+
+body[data-dump="aperto"] .dump {
+  scroll-margin-top: var(--sotto-fascia);
+}
+
+.banco__dump {
+  grid-column: 1 / -1;
+  min-width: 0;
+  background: var(--fondo);
+  color: var(--testo);
+  border-block: var(--filo) solid #000;
+}
+
+/* =============================================================================
+   la lettura umana: la sola serif della pagina
+   ========================================================================== */
+
+.testo {
+  max-width: 62ch;
+}
+
+.occhiello {
+  margin: 0 0 0.35em;
+  font-family: var(--macchina);
+  font-size: var(--t-occhiello);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--legame);
+}
+
+.titolo {
+  margin: 0 0 0.5em;
+  font-family: var(--umano);
+  font-size: var(--t-titolo);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  color: var(--testo);
+}
+
+.corpo {
+  font-family: var(--umano);
+  font-size: var(--t-corpo);
+  line-height: var(--interlinea);
+  color: var(--testo);
+}
+
+.corpo p {
+  margin: 0 0 0.75em;
+}
+
+.corpo p:last-child {
+  margin-bottom: 0;
+}
+
+/* In presentazione si legge l'occhiello, il titolo e il PRIMO paragrafo: i testi sono scritti
+   perche' il primo paragrafo regga da solo. */
+body[data-modalita="presentazione"] .corpo p:not(:first-child) {
+  display: none;
+}
+
+/* =============================================================================
+   quando la spaccatura non regge piu'
+   ------------------------------------------------------------------------------
+   DECISIONE ESPLICITA, non un ripiego del flexbox. Sotto i 900 px una colonna di testo per
+   meta' schermo scende sotto le trenta battute: la spaccatura verticale smette di essere
+   leggibile molto prima di smettere di funzionare. Allora RUOTA DI NOVANTA GRADI. Le due
+   letture restano adiacenti e nello stesso ordine — prima la carta, poi la lastra — ma una
+   sopra l'altra, e la giuntura da verticale diventa orizzontale: ogni cella si dipinge il
+   proprio fondo, quindi il confine fra chiaro e scuro resta visibile e continua a separare le
+   stesse due cose. Cio' che attraversava la spaccatura (righello, dump, traccia) resta a piena
+   larghezza: era gia' di tutti e due.
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  body {
+    background-image: none;
+    background-color: var(--carta);
+  }
+
+  .banco,
+  .pila,
+  .teoria {
+    grid-template-columns: 1fr;
+  }
+
+  /* Impilate, le due letture del banco sono gia' alte quanto la finestra: appenderle in cima
+     non lascerebbe niente per il resto. E la spaccatura non e' piu' verticale, quindi il
+     gradiente del banco va spento e i fondi tornano a essere quelli delle celle — la stessa
+     cosa che si fa sul body sei righe piu' su. */
+  .banco,
+  body[data-appeso="si"] .banco {
+    position: static;
+    box-shadow: none;
+    background-image: none;
+    background-color: var(--carta);
+  }
+
+  /* Impilate, le due meta' non hanno piu' un banco appeso da scavalcare: la mobilia e' la sola
+     fascia. Le tre righe rifanno le tre di sopra una per una — stessa specificita', piu' in
+     basso nel foglio — perche' una sola non ne vincerebbe nessuna. */
+  .pagina,
+  body[data-dump="aperto"] .pagina,
+  body[data-appeso="no"] .pagina {
+    --sotto-mobilia: var(--sotto-fascia);
+  }
+
+  .cella--positivo,
+  .cella--negativo {
+    grid-column: 1;
+  }
+
+  .cella--positivo {
+    background: var(--carta);
+  }
+
+  .cella--negativo {
+    background: var(--lastra);
+  }
+
+  body[data-avvio="si"] .colonna {
+    max-width: none;
+  }
+
+  body[data-avvio="si"] .colonna--positivo {
+    margin-left: 0;
+    text-align: left;
+  }
+
+  /* Il numero del passo non si accorcia mai: e' l'unica cosa che dice dove si e'. A cedere,
+     fino ai puntini, e' la descrizione dei byte a destra. */
+  .traccia {
+    grid-template-columns: auto minmax(0, 1fr);
+    background: var(--base);
+    border-top: none;
+    margin-top: 0;
+  }
+
+  .traccia__destra {
+    min-width: 0;
+  }
+
+  .traccia__sinistra,
+  .traccia__destra {
+    --testo: #d5e0e1;
+    --tenue: #85989c;
+    --legame: #62e3f3;
+    justify-content: flex-start;
+    border: none;
+    margin-left: 0;
+  }
+
+  .traccia__destra {
+    justify-content: flex-end;
+  }
+
+  .testo {
+    max-width: none;
+  }
+}
+
+/* Sotto i 620 px la fascia degli strumenti mangerebbe mezza finestra: smette di essere fissa e
+   torna in cima al documento, dove la si raggiunge scorrendo. */
+@media (max-width: 620px) {
+  .plancia {
+    position: static;
+  }
+
+  .testata {
+    gap: 8px;
+  }
+
+  .testata__marchio {
+    width: 100%;
+  }
+}
+
+/* =============================================================================
+   movimento — rispettato davvero, non solo dichiarato
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

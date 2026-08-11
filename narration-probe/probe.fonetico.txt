@@ -1,0 +1,9 @@
+Questo documento è una promessa di pagamento: mille euro entro il giorno trenta settembre.
+Un impegno serio, ma senza valore legale: è una dimostrazione.
+La firma digitale non è un disegno.
+Il programma calcola un'impronta del documento, poi la chiude con la chiave privata.
+Il certificato dice chi ha firmato.
+Lo standard si chiama pades, e la zona coperta si chiama bait reing.
+Se qualcuno sbaglia una cifra, o cambia un solo byte, nessuno se ne accorge.
+La macchina, invece, legge meglio.
+La verifica riconosce ogni falsificazione, perché lascia una differenza.

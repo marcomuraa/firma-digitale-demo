@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Spike pdf.js — variante c</title>
+<style>
+  body { font: 13px ui-monospace, monospace; margin: 1rem; background: #fff; color: #111; }
+  #esito { white-space: pre-wrap; border: 2px solid #999; padding: .75rem; }
+  #esito[data-esito="ok"] { border-color: #1a7f37; background: #eaf6ec; }
+  #esito[data-esito="errore"] { border-color: #b3261e; background: #fdecea; }
+  canvas { border: 1px solid #ccc; margin-top: 1rem; max-width: 100%; }
+</style>
+</head>
+<body>
+<h1>Spike pdf.js — variante c</h1>
+<pre id="esito" data-esito="in-corso">in corso...</pre>
+<canvas id="tela" width="10" height="10"></canvas>
+<script type="module" src="/src/main-c.js"></script>
+</body>
+</html>

@@ -1,0 +1,1453 @@
+/* =============================================================================
+   Doppia esposizione — le parti.
+
+   Ogni componente e' scritto una volta sola e usa soltanto le variabili di esposizione
+   (--fondo, --testo, --tenue, --linea, --legame, --valido/--esteso/--invalido). Messo sulla
+   carta o sulla lastra si sviluppa da se': e' cosi' che le due meta' restano due letture dello
+   stesso oggetto invece di due temi appiccicati.
+
+   Le sole eccezioni sono il righello e il dump, che stanno sul supporto e appartengono a tutte
+   e due le letture: le loro tinte (--r-*) non dipendono dall'esposizione, perche' quella fascia
+   attraversa la giuntura e deve leggersi uguale da una parte e dall'altra.
+   ========================================================================== */
+
+/* =============================================================================
+   comandi
+   ========================================================================== */
+
+/* Un comando qui e' un rettangolo di un pixel e nient'altro: fondo trasparente, nessuna ombra,
+   nessun riempimento. Quel filo non separa, DICE che si puo' premere — ed e' l'unica cosa che
+   lo distingue da una didascalia, visto che tutta la pagina scrive le etichette con lo stesso
+   maiuscoletto monospazio. Percio' usa `--linea-comando`, che sta sopra il 3:1 contro il
+   proprio fondo (impianto.css, la nota sulle tre esposizioni), e non `--linea`, che sta a
+   1,5:1 ed e' giusto cosi' per un filetto che separa e basta. */
+.comando {
+  font: inherit;
+  font-family: var(--macchina);
+  font-size: var(--t-minuto);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--testo);
+  background: transparent;
+  border: var(--filo) solid var(--linea-comando);
+  border-radius: var(--raggio);
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.comando:hover:not(:disabled) {
+  border-color: var(--legame);
+  color: var(--legame);
+}
+
+/* 0,38 dava 2,95:1 al testo: esente da WCAG perche' disabilitato, illeggibile lo stesso, e in
+   proiezione «TORNA ALL'EVIDENZIAZIONE» spento e' comunque una parola che qualcuno prova a
+   leggere. 0,55 la porta a 4,7:1 — sopra la soglia del testo normale, che un comando spento non
+   sarebbe tenuto a rispettare — e resta comunque, accanto a un comando vivo, visibilmente
+   spenta. Lo stato disabilitato non e' affidato solo alla fioca: `cursor: default` e l'assenza
+   di qualunque reazione al passaggio lo dicono insieme a lei. */
+.comando:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.comando--minuto {
+  padding: 5px 9px;
+  letter-spacing: 0.1em;
+}
+
+.comando--largo {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin-top: 12px;
+}
+
+.comando--largo::before {
+  content: "▸ ";
+  color: var(--legame);
+}
+
+.comando--largo[aria-expanded="true"]::before {
+  content: "▾ ";
+}
+
+.comando--chiave {
+  border-color: var(--legame);
+  color: var(--legame);
+}
+
+.comando--primario {
+  font-size: calc(var(--t-macchina) * 1.02);
+  letter-spacing: 0.1em;
+  padding: 9px 16px;
+  color: var(--base);
+  background: var(--legame);
+  border-color: var(--legame);
+}
+
+.comando--primario:hover:not(:disabled) {
+  background: #fff;
+  border-color: #fff;
+  color: var(--base);
+}
+
+.comando--primario:disabled {
+  background: transparent;
+  color: var(--testo);
+  border-color: var(--linea-comando);
+}
+
+/* =============================================================================
+   il rail dei dodici passi — una sequenza vera, quindi numerata
+   ========================================================================== */
+
+.rail {
+  display: flex;
+  align-items: center;
+  gap: var(--gutter);
+  padding: 8px var(--gutter);
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.rail__comandi {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* I dodici passi vanno A CAPO invece di scorrere di lato: un elenco che scorre nasconde meta'
+   della demo dietro un gesto che nessuno fa davanti a un proiettore. */
+.rail__passi {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 3px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 340px;
+  min-width: 0;
+}
+
+.passo {
+  font: inherit;
+  font-family: var(--macchina);
+  font-size: var(--t-minuto);
+  display: flex;
+  align-items: baseline;
+  gap: 0.5em;
+  white-space: nowrap;
+  padding: 6px 8px;
+  color: var(--tenue);
+  background: transparent;
+  border: none;
+  border-top: 2px solid var(--linea-comando);
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease;
+}
+
+.passo__numero {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.passo__nome {
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* In presentazione i nomi sparirebbero comunque nella fretta: restano i numeri, grandi, e il
+   nome vive nell'aria-label e nel comando grande. */
+body[data-modalita="presentazione"] .passo__nome {
+  display: none;
+}
+
+/* Stretti, i nomi non ci stanno in nessuna modalita': restano i numeri, e il nome vive
+   nell'aria-label e nel comando grande. */
+@media (max-width: 820px) {
+  .passo__nome {
+    display: none;
+  }
+}
+
+.passo[data-stato="fatto"] {
+  color: var(--testo);
+  border-top-color: var(--legame);
+}
+
+.passo[data-stato="corso"] {
+  color: var(--legame);
+  border-top-color: var(--legame);
+}
+
+.passo[aria-current="step"] {
+  color: var(--legame);
+  background: var(--fondo-alto);
+}
+
+.passo:hover:not(:disabled) {
+  color: var(--legame);
+}
+
+.passo:disabled {
+  cursor: default;
+}
+
+.passo:disabled[data-stato="atteso"] {
+  opacity: 0.42;
+}
+
+.rail__avviso {
+  flex: 1 0 100%;
+  margin: 4px 0 0;
+  font-size: var(--t-minuto);
+  letter-spacing: 0.06em;
+  color: var(--esteso);
+  border-left: 2px solid var(--esteso);
+  padding-left: 10px;
+}
+
+/* =============================================================================
+   il righello dei byte — l'intero file a scala reale
+   ------------------------------------------------------------------------------
+   DUE CANALI, perche' gli assi sono due (docs/contratti-ui.md):
+     `covered` -> il RIEMPIMENTO. Pieno = firmato. Si legge da segment.covered e da nient'altro.
+     `kind`    -> la TESSITURA. Vuoto tratteggiato per il buco, rigato per la coda.
+   Nessuna larghezza minima: un segmento di quindici byte su diecimila e' largo due pixel, ed e'
+   giusto cosi'. Ingrandire i pezzi piccoli vorrebbe dire non essere piu' in scala.
+   ========================================================================== */
+
+.righello {
+  padding: 10px var(--gutter) 8px;
+}
+
+.righello__banda {
+  position: relative;
+  display: flex;
+  height: 26px;
+  border: var(--filo) solid var(--r-cornice);
+  border-radius: var(--raggio);
+  background: #0b1113;
+  overflow: hidden;
+}
+
+body[data-modalita="presentazione"] .righello__banda {
+  height: 36px;
+}
+
+.seg {
+  flex: var(--f) 0 0;
+  min-width: 0;
+  position: relative;
+}
+
+/* asse 2, la copertura: pieno acceso contro pieno spento. E' la differenza piu' grossa che la
+   fascia sa fare, perche' e' la domanda piu' importante che sa rispondere. */
+.seg[data-coperto="si"] {
+  background: var(--r-coperto);
+}
+
+.seg[data-coperto="no"] {
+  background: var(--r-scoperto);
+}
+
+/* asse 1, che cosa sono quei byte: gli oggetti del PDF stanno un gradino piu' su della
+   struttura che li tiene insieme. Vale anche prima della firma, quando la copertura non c'e'
+   ancora: la fascia e' comunque la mappa anatomica del file. */
+.seg[data-kind="structure"][data-coperto="si"] {
+  background: color-mix(in srgb, var(--r-coperto) 55%, #0b1113);
+}
+
+.seg[data-kind="structure"][data-coperto="no"] {
+  background: color-mix(in srgb, var(--r-scoperto) 45%, #0b1113);
+}
+
+/* Un filo scuro fra un segmento e l'altro: separa senza rubare un pixel di larghezza, quindi
+   la scala resta quella vera. */
+.seg + .seg {
+  box-shadow: inset 1px 0 0 rgb(0 0 0 / 55%);
+}
+
+.seg[data-kind="hole"] {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--r-vuoto) 0 1px,
+    transparent 1px 5px
+  );
+  opacity: 0.75;
+}
+
+.seg[data-kind="tail"] {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--r-coda) 0 3px,
+    #0b1113 3px 7px
+  );
+}
+
+.righello__vuoto {
+  flex: 1;
+  background: repeating-linear-gradient(90deg, #24312f 0 1px, transparent 1px 8px);
+}
+
+/* Il ponte: quando si indica un punto sulla carta, il righello lo segna. E' l'unico elemento
+   che collega davvero le due meta', e sta sull'asse che appartiene a tutte e due. */
+.righello__indicato {
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  left: calc(var(--da) * 100%);
+  width: max(3px, calc(var(--larghezza) * 100%));
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #000, 0 0 12px 2px rgb(255 255 255 / 45%);
+  pointer-events: none;
+}
+
+/* L'altezza della fascia delle tacche e in em del corpo che ci vive dentro: cresce da se'
+   quando il piano etichetta cresce, invece di essere rimisurata a mano. */
+.righello__tacche {
+  position: relative;
+  height: calc(var(--t-etichetta) * 2.7);
+  margin-top: 4px;
+}
+
+.righello__tacche[data-fitte="si"] {
+  height: calc(var(--t-etichetta) * 5.4);
+}
+
+.tacca {
+  position: absolute;
+  left: calc(var(--x) * 100%);
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  white-space: nowrap;
+}
+
+.tacca[data-ancora="centro"] {
+  transform: translateX(-50%);
+  align-items: center;
+}
+
+.tacca[data-ancora="destra"] {
+  transform: translateX(-100%);
+  align-items: flex-end;
+}
+
+/* La seconda riga scende di quanto e' alta la prima — nome piu' numero — misurata sul corpo
+   del momento, che in presentazione e' piu' grande. */
+.tacca[data-riga="2"] {
+  top: calc(var(--t-etichetta) * 2.7);
+}
+
+.tacca__asta {
+  position: absolute;
+  top: -6px;
+  width: 1px;
+  height: 6px;
+  background: var(--r-vuoto);
+}
+
+/* La tacca scesa sulla seconda riga allunga la sua asta fino alla banda, altrimenti indicherebbe
+   il vuoto. */
+.tacca[data-riga="2"] .tacca__asta {
+  top: calc(var(--t-etichetta) * -2.7 - 6px);
+  height: calc(var(--t-etichetta) * 2.7 + 6px);
+}
+
+.tacca[data-ancora="centro"] .tacca__asta {
+  left: 50%;
+}
+
+.tacca[data-ancora="destra"] .tacca__asta {
+  right: 0;
+}
+
+/* Strette, le didascalie delle tacche sono piu' larghe della fascia che annotano e sbordano
+   dalla pagina. Restano il segno e l'offset, che sono l'informazione; il nome per esteso lo
+   dice la didascalia sotto, che va a capo. */
+@media (max-width: 760px) {
+  .tacca__nome {
+    display: none;
+  }
+}
+
+.tacca__nome {
+  font-size: var(--t-etichetta);
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.tacca[data-kind="tail"] .tacca__nome {
+  color: var(--r-coda);
+}
+
+.tacca[data-kind="hole"] .tacca__nome {
+  color: var(--r-vuoto);
+}
+
+.tacca__offset {
+  font-style: normal;
+  font-size: var(--t-etichetta);
+  font-variant-numeric: tabular-nums;
+  color: var(--testo);
+}
+
+.righello__didascalia {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 2px 0 0;
+  font-size: var(--t-etichetta);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.righello__voce::before {
+  content: "";
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 6px;
+  vertical-align: -1px;
+  border: var(--filo) solid var(--r-cornice);
+}
+
+.righello__voce[data-voce="totale"]::before {
+  background: transparent;
+}
+
+.righello__voce[data-voce="coperto"]::before {
+  background: var(--r-coperto);
+}
+
+.righello__voce[data-voce="hole"]::before {
+  background: repeating-linear-gradient(90deg, var(--r-vuoto) 0 1px, transparent 1px 4px);
+}
+
+.righello__voce[data-voce="tail"]::before {
+  background: repeating-linear-gradient(-45deg, var(--r-coda) 0 2px, #0b1113 2px 5px);
+}
+
+.righello[data-stato="vuoto"] .righello__didascalia {
+  opacity: 0.6;
+}
+
+/* =============================================================================
+   il dump esadecimale — a piena larghezza, perche' a meta' schermo non ci sta
+   ========================================================================== */
+
+.dump {
+  padding: 10px var(--gutter) 14px;
+  min-width: 0;
+}
+
+.dump__regione {
+  margin-top: 10px;
+}
+
+.dump__barra {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.dump__posizione {
+  font-size: var(--t-minuto);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.dump__corpo {
+  overflow-x: auto;
+  max-height: 32vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  border: var(--filo) solid var(--linea);
+  border-radius: var(--raggio);
+  padding: 8px 10px;
+  background: #0b1113;
+}
+
+.dump__riga {
+  display: flex;
+  align-items: center;
+  gap: 1.4ch;
+  width: max-content;
+  min-width: 100%;
+  font-size: var(--t-dump);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.dump__offset {
+  color: var(--tenue);
+  font-variant-numeric: tabular-nums;
+}
+
+.dump__celle {
+  display: flex;
+  gap: 0.45ch;
+}
+
+.dump__celle .ottetto:nth-child(8) {
+  margin-right: 0.9ch;
+}
+
+.ottetto,
+.ch {
+  color: #93a7aa;
+  border-radius: 1px;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.ottetto {
+  padding-inline: 0.12ch;
+}
+
+.dump__testo {
+  display: flex;
+  color: #728589;
+  border-left: var(--filo) solid var(--linea);
+  padding-left: 1.2ch;
+}
+
+/* I colori dei `kind` sono quelli della tabella passo -> kind del contratto: si copiano, non si
+   indovinano. Ognuno ha anche una FORMA — sottolineatura, tratteggio, riga — perche' un
+   daltonico in aula deve poterli distinguere. */
+.ottetto[data-kind="object"],
+.ch[data-kind="object"] {
+  color: #d7f2f6;
+  background: #0d4551;
+}
+
+.ottetto[data-kind="structure"],
+.ch[data-kind="structure"] {
+  color: #cfd9da;
+  background: #263436;
+}
+
+.ottetto[data-kind="hole"],
+.ch[data-kind="hole"] {
+  color: #8fa3a6;
+  background: repeating-linear-gradient(-45deg, #1b2528 0 2px, transparent 2px 4px);
+}
+
+.ottetto[data-kind="tail"],
+.ch[data-kind="tail"] {
+  color: #1a1206;
+  background: var(--r-coda);
+}
+
+.ottetto[data-kind="target"],
+.ch[data-kind="target"] {
+  color: #d7f2f6;
+  box-shadow: inset 0 0 0 1px var(--r-coperto);
+}
+
+.ottetto[data-kind="changed"],
+.ch[data-kind="changed"] {
+  color: #1a0407;
+  background: #ff8a93;
+  text-decoration: underline 2px;
+}
+
+.ottetto[data-indicato="si"],
+.ch[data-indicato="si"] {
+  outline: 2px solid #fff;
+  outline-offset: -1px;
+  color: #fff;
+}
+
+.dump__legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 8px;
+}
+
+/* L'etichetta di una voce di legenda e' quella che la macchina ha scritto sull'evidenziazione
+   («Aggiunto dopo la firma, fuori dalla copertura»): troncarla toglie proprio il significato
+   che la legenda serve a dare. Va a capo. */
+.chiave {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: var(--t-etichetta);
+  line-height: 1.45;
+  color: var(--tenue);
+  max-width: 56ch;
+}
+
+.chiave__campione {
+  width: 14px;
+  height: 12px;
+  margin-top: 2px;
+  flex: none;
+  border-radius: 1px;
+  border: var(--filo) solid var(--linea);
+}
+
+.chiave__campione[data-kind="object"] {
+  background: #0d4551;
+}
+
+.chiave__campione[data-kind="structure"] {
+  background: #263436;
+}
+
+.chiave__campione[data-kind="hole"] {
+  background: repeating-linear-gradient(-45deg, #1b2528 0 2px, transparent 2px 4px);
+}
+
+.chiave__campione[data-kind="tail"] {
+  background: var(--r-coda);
+}
+
+.chiave__campione[data-kind="target"] {
+  box-shadow: inset 0 0 0 2px var(--r-coperto);
+}
+
+.chiave__campione[data-kind="changed"] {
+  background: #ff8a93;
+}
+
+.chiave__testo {
+  min-width: 0;
+}
+
+.dump__nota {
+  font-size: var(--t-minuto);
+  color: var(--tenue);
+}
+
+/* =============================================================================
+   il documento e i punti che si possono indicare
+   ========================================================================== */
+
+.documento {
+  margin: 0;
+}
+
+/* Prima del primo passo non c'e' nessun documento e nessun byte da indicare: una cornice vuota
+   e sei bottoni spenti sarebbero un'interfaccia rotta, non uno stato iniziale. Restano la tesi
+   e il comando che la avvia. */
+body[data-avvio="si"] .banco__documento {
+  display: none;
+}
+
+.documento__cornice {
+  display: inline-block;
+  max-width: 100%;
+  background: #fff;
+  border: var(--filo) solid var(--linea);
+  box-shadow: 0 18px 30px -26px #000;
+}
+
+/* L'altezza della tela e' un compromesso misurato. Ogni pixel che il banco prende lo toglie al
+   pannello che si sta leggendo — meno di prima, da quando il banco resta appeso solo nei passi
+   in cui c'e' qualcosa da confrontare, e quello spazio recuperato torna qui: in presentazione
+   la pagina intera arriva al 62 % della finestra invece che al 46. */
+.documento__tela {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+}
+
+/* Il budget di altezza appartiene alla PAGINA INTERA: con la lente accesa il ritaglio ha un
+   budget suo (--lente-h) e la tela dietro di lui e' larga quanto serve. Tenerli separati per
+   selettore, invece che per ordine di dichiarazione, evita che una riga aggiunta qui sotto un
+   giorno strozzi la lente senza che nessuno se ne accorga. */
+.documento__cornice[data-vista="intera"] .documento__tela {
+  max-height: 38vh;
+}
+
+@media (max-width: 900px) {
+  .documento__cornice[data-vista="intera"] .documento__tela {
+    max-height: 62vh;
+  }
+}
+
+/* =============================================================================
+   la lente: la carta apre una finestra, come la lastra
+   ------------------------------------------------------------------------------
+   Il rettangolo da ingrandire lo misura il JavaScript sui pixel appena disegnati (documento.js,
+   `misuraRitaglio`) e lo consegna qui in coordinate della PAGINA, come frazioni pure. Il CSS
+   non sa niente di PDF: gli bastano il rapporto del ritaglio, quanto ingrandire e di quanto
+   spostare. La tela resta la stessa — e' sempre pdf.js che disegna dentro [data-canvas-pdf],
+   il contratto del DOM non si muove — cambia soltanto la finestra da cui la si guarda.
+   ========================================================================== */
+
+.documento__cornice[data-vista="dettaglio"] {
+  display: block;
+  position: relative;
+  width: 100%;
+  /* La finestra non supera mai `--lente-h` in altezza: sopra c'e' il righello, sotto il
+     pannello che spiega, e questa e' una lente, non una diapositiva. */
+  max-width: calc(var(--ritaglio-rapporto, 4) * var(--lente-h, 16vh));
+  aspect-ratio: var(--ritaglio-rapporto, 4);
+  overflow: hidden;
+}
+
+.documento__cornice[data-vista="dettaglio"] .documento__tela {
+  position: absolute;
+  max-width: none;
+  max-height: none;
+  width: calc(var(--ritaglio-zoom-x, 1) * 100%);
+  height: calc(var(--ritaglio-zoom-y, 1) * 100%);
+  left: calc(var(--ritaglio-x, 0) * -100%);
+  top: calc(var(--ritaglio-y, 0) * -100%);
+}
+
+body[data-modalita="presentazione"] .documento__cornice[data-vista="dettaglio"] {
+  --lente-h: 26vh;
+}
+
+body[data-dump="aperto"] .documento__cornice[data-vista="dettaglio"] {
+  --lente-h: 13vh;
+}
+
+body[data-modalita="presentazione"][data-dump="aperto"] .documento__cornice[data-vista="dettaglio"] {
+  --lente-h: 20vh;
+}
+
+/* Il riquadro di attesa ha una misura minima perche' non ci sia un salto quando la pagina
+   arriva. Vale per la pagina intera soltanto: con la lente accesa il riquadro ha gia' una forma
+   sua — il rapporto del ritaglio — e imporgli 280 px di altezza mentre pdf.js ridisegna
+   sposterebbe il ritaglio per il tempo di un disegno, cioe' farebbe scivolare l'importo fuori
+   dalla finestra proprio nell'istante dell'attacco. */
+.documento[data-stato="vuoto"] .documento__cornice[data-vista="intera"],
+.documento[data-stato="disegno"] .documento__cornice[data-vista="intera"] {
+  min-width: 220px;
+  min-height: 280px;
+}
+
+.documento[data-stato="vuoto"] .documento__cornice,
+.documento[data-stato="disegno"] .documento__cornice {
+  background: var(--fondo-alto);
+  border-style: dashed;
+}
+
+.documento__didascalia {
+  margin-top: 8px;
+}
+
+/* Non e' un'etichetta di servizio: e' l'unica riga che dice CHE COSA si sta guardando — quali
+   byte, quanti, e se quella pagina e' la pagina intera o la riga dell'importo ingrandita. Sta
+   nel piano delle etichette che portano un dato, non in quello dei numerini. */
+.documento__stato {
+  margin: 0;
+  font-size: var(--t-etichetta);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+/* Il documento e i suoi appigli stanno fianco a fianco: la pagina disegnata e' stretta e alta,
+   e il vuoto che le resta accanto e' esattamente lo spazio che serve all'elenco dei punti. Cosi'
+   il banco resta basso abbastanza da poter restare appeso in cima. */
+@media (min-width: 1080px) {
+  /* La colonna del documento e' una FRAZIONE, non `auto`: con `auto` la traccia si dimensiona
+     sul contenuto piu' largo, che qui non e' la pagina disegnata ma la didascalia sotto — e
+     una riga di testo lunga schiacciava a ventisette pixel la colonna degli appigli. */
+  .banco__documento {
+    display: grid;
+    grid-template-columns: minmax(0, 42%) minmax(0, 1fr);
+    gap: var(--gutter);
+    align-items: start;
+  }
+
+  /* In presentazione la colonna del documento vale piu' di quella degli appigli: i sei chip
+     stanno in due righe strette anche a 1920, e il 42 % lasciava mezza colonna vuota accanto a
+     una pagina che intanto non si leggeva. Qui la larghezza e' la sola leva che ingrandisca
+     davvero la pagina intera, perche' e' la larghezza a limitarla, non l'altezza. */
+  body[data-modalita="presentazione"] .banco__documento {
+    grid-template-columns: minmax(0, 58%) minmax(0, 1fr);
+  }
+
+  .banco__documento .documento {
+    min-width: 0;
+  }
+
+  .banco__documento .punti {
+    margin-top: 0;
+    border-top: none;
+    border-left: var(--filo) solid var(--linea);
+    padding-top: 0;
+    padding-left: var(--gutter);
+  }
+
+  .documento__cornice[data-vista="intera"] .documento__tela {
+    max-height: 46vh;
+  }
+
+  body[data-modalita="presentazione"] .documento__cornice[data-vista="intera"] .documento__tela {
+    max-height: 62vh;
+  }
+}
+
+/* Quando il banco e' APPESO, ogni pixel della pagina disegnata e' un pixel tolto al pannello
+   che si sta leggendo, e allora il documento torna a essere un riscontro: sta a schermo per
+   dire «e' questo il documento di cui parla quel verdetto», non per essere letto. Misurato a
+   1280x900: senza questo tetto il banco appeso al passo «verifica» arrivava a 907 px su una
+   finestra di 900, cioe' il pannello cominciava sotto il bordo. */
+body[data-appeso="si"] .documento__cornice[data-vista="intera"] .documento__tela {
+  max-height: 26vh;
+}
+
+@media (min-width: 1080px) {
+  body[data-appeso="si"][data-modalita="presentazione"]
+    .documento__cornice[data-vista="intera"]
+    .documento__tela {
+    max-height: 30vh;
+  }
+}
+
+/* Col dump aperto la pagina disegnata si fa piccola: si stanno guardando i byte, e il documento
+   serve come riscontro, non come lettura. E' l'unico modo perche' banco e finestra esadecimale
+   stiano sullo schermo insieme — che e' tutto il punto dell'attacco. Ma «piccola» non vuol dire
+   illeggibile: durante gli attacchi la lente e' accesa, e a lei il dump aperto toglie molto meno
+   che alla pagina intera. */
+body[data-dump="aperto"] .documento__cornice[data-vista="intera"] .documento__tela {
+  max-height: 24vh;
+}
+
+body[data-modalita="presentazione"][data-dump="aperto"]
+  .documento__cornice[data-vista="intera"]
+  .documento__tela {
+  max-height: 40vh;
+}
+
+.punti {
+  margin-top: 18px;
+  border-top: var(--filo) solid var(--linea);
+  padding-top: 12px;
+}
+
+.punti__titolo {
+  margin: 0 0 8px;
+  font-family: var(--macchina);
+  font-size: var(--t-minuto);
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.punti__elenco {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Il valore va a capo sotto il nome quando la colonna degli appigli si stringe. Prima il chip
+   era `nowrap` e basta: in presentazione, dove la colonna del documento vale il 58 %, «IMPORTO
+   IN LETTERE «mille»» sbordava oltre la giuntura e la meta' scura gliene mangiava la coda. Va a
+   capo dentro se stesso, non si accorcia: il testo che il chip mostra e' letto dai byte veri, e
+   troncarlo vorrebbe dire mostrare un importo diverso da quello che c'e' scritto. */
+.chip {
+  font: inherit;
+  font-family: var(--macchina);
+  font-size: var(--t-minuto);
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 0.6em;
+  max-width: 100%;
+  padding: 6px 10px;
+  color: var(--testo);
+  background: transparent;
+  border: var(--filo) solid var(--linea-comando);
+  border-radius: var(--raggio);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+
+.chip__nome {
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--tenue);
+  white-space: nowrap;
+}
+
+/* IL VALORE RESTA A 13 px IN PRESENTAZIONE, ED E' UNA SCELTA MISURATA, non una dimenticanza.
+   Porta un dato e non un'etichetta — «1.000», «mille», «novemila», il testo che gli attacchi
+   falsificano — quindi il piano giusto sarebbe `--t-etichetta`, 17,5 px. Ma i sei chip stanno
+   nella colonna piu' alta del banco, e a 17,5 px il banco passa da 467,4 a 497,4: trenta pixel
+   che al passo «verifica» vengono tolti tutti al pannello che spiega il verdetto, la cui parte
+   leggibile scende da 107,3 px a 76,4 su una finestra da 900 (misurato, 1280x900, presentazione).
+   Trenta pixel di spiegazione per quattro e mezzo di chip non e' un baratto che convenga, e quel
+   testo il pubblico lo legge intanto a 40 px dentro la lente, che sta li' accanto. */
+.chip__valore {
+  color: var(--legame);
+  overflow-wrap: anywhere;
+}
+
+.chip:hover:not(:disabled) {
+  border-color: var(--legame);
+}
+
+.chip[aria-pressed="true"] {
+  background: var(--legame-fondo);
+  border-color: var(--legame);
+}
+
+.chip[aria-pressed="true"] .chip__nome {
+  color: var(--testo);
+}
+
+/* Stessa taratura dei comandi: fioco quanto basta per dire «non adesso», leggibile lo stesso. */
+.chip:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.punti__nota {
+  margin: 10px 0 0;
+  font-family: var(--umano);
+  font-size: calc(var(--t-corpo) * 0.92);
+  line-height: 1.45;
+  color: var(--testo);
+  border-left: 2px solid var(--esteso);
+  padding-left: 12px;
+}
+
+/* =============================================================================
+   la lettura macchina: campi, verdetti, impronte
+   ========================================================================== */
+
+.campi {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: 2px 14px;
+  margin: 10px 0 0;
+  font-size: var(--t-macchina);
+}
+
+.campi__nome {
+  font-size: var(--t-etichetta);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tenue);
+  align-self: baseline;
+  white-space: nowrap;
+}
+
+.campi__valore {
+  margin: 0;
+  color: var(--testo);
+  overflow-wrap: anywhere;
+}
+
+body[data-modalita="presentazione"] .campi__nome[data-secondario="si"],
+body[data-modalita="presentazione"] .campi__valore[data-secondario="si"] {
+  display: none;
+}
+
+.lettura__blocco {
+  margin-top: 12px;
+}
+
+.lettura__nome {
+  display: block;
+  font-size: var(--t-minuto);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tenue);
+  margin-bottom: 4px;
+}
+
+/* I blocchi esadecimali sono la PROVA, non un accessorio: le due impronte a confronto del passo 8
+   si leggono qui. Stavano a 15,5 px in presentazione, sotto la soglia di 16 che questa pagina si
+   e' data; il 6 % risparmiato non faceva stare in meno righe niente, perche' vanno a capo lo
+   stesso. */
+.blocco {
+  display: block;
+  font-family: var(--macchina);
+  font-size: var(--t-macchina);
+  line-height: 1.5;
+  color: var(--testo);
+  background: var(--fondo-alto);
+  border: var(--filo) solid var(--linea);
+  border-radius: var(--raggio);
+  padding: 7px 9px;
+  overflow-wrap: anywhere;
+}
+
+.lettura__guasto {
+  margin: 10px 0 0;
+  color: var(--invalido);
+  font-size: var(--t-macchina);
+  border-left: 2px solid var(--invalido);
+  padding-left: 10px;
+}
+
+/* --- il verdetto: colore, FORMA e PAROLA, mai il colore da solo ----------- */
+
+/* Quando il verdetto segue i fatti dell'attacco e' la conclusione di quei fatti, non un'altra
+   voce dell'elenco: gli si lascia aria intorno perche' si legga come tale. */
+.campi + .verdetto__blocco {
+  margin-top: 18px;
+}
+
+/* Il corpo del verdetto sta sul blocco, e la forma lo segue in `em`: cosi' cerchio, triangolo e
+   quadrato crescono insieme alla parola invece di restare i 22 px fissi che in presentazione
+   facevano sembrare il segno piu' importante della conclusione. */
+.verdetto {
+  display: flex;
+  align-items: center;
+  gap: 0.42em;
+  margin-bottom: 12px;
+  font-size: var(--t-verdetto);
+}
+
+.verdetto__forma {
+  width: 0.78em;
+  height: 0.78em;
+  flex: none;
+  border: 0.105em solid currentcolor;
+}
+
+.verdetto[data-verdetto="valid"] {
+  color: var(--valido);
+}
+
+.verdetto[data-verdetto="valid"] .verdetto__forma {
+  border-radius: 50%;
+  background: color-mix(in srgb, currentcolor 22%, transparent);
+}
+
+.verdetto[data-verdetto="extended"] {
+  color: var(--esteso);
+}
+
+.verdetto[data-verdetto="extended"] .verdetto__forma {
+  border: none;
+  background: currentcolor;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+}
+
+.verdetto[data-verdetto="invalid"] {
+  color: var(--invalido);
+}
+
+/* Cerchio, triangolo, quadrato: le stesse tre forme del segno accanto a ogni controllo, cosi'
+   la forma vuol dire sempre la stessa cosa in tutta la pagina. */
+.verdetto[data-verdetto="invalid"] .verdetto__forma {
+  border-radius: 1px;
+  background: color-mix(in srgb, currentcolor 22%, transparent);
+}
+
+.verdetto__parola {
+  font-family: var(--macchina);
+  font-size: 1em;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.controlli {
+  display: grid;
+  gap: 4px;
+  border-block: var(--filo) solid var(--linea);
+  padding-block: 8px;
+}
+
+.controllo {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: var(--t-macchina);
+}
+
+.controllo__nome {
+  font-size: var(--t-etichetta);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tenue);
+  min-width: 9ch;
+}
+
+.controllo__dettaglio {
+  color: var(--tenue);
+  font-size: calc(var(--t-macchina) * 0.92);
+}
+
+body[data-modalita="presentazione"] .controllo__dettaglio {
+  display: none;
+}
+
+/* Tre forme diverse, non tre colori: cerchio, triangolo, quadrato. */
+.segno {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Il lato del segno si deriva dal corpo macchina, non da `em`: dentro `.segno__forma` la
+   `font-size` e' quella del glifo, e un `em` di larghezza si misurerebbe su quella invece che
+   sul testo accanto. Erano 15 px fissi con il glifo a 10 — cioe' fermi mentre tutto il resto
+   raddoppiava passando in presentazione. */
+.segno {
+  --segno-lato: calc(var(--t-macchina) * 0.95);
+}
+
+.segno__forma {
+  width: var(--segno-lato);
+  height: var(--segno-lato);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-style: normal;
+  font-size: calc(var(--segno-lato) * 0.66);
+  line-height: 1;
+  color: var(--fondo);
+}
+
+.segno[data-segno="si"] {
+  color: var(--valido);
+}
+
+.segno[data-segno="si"] .segno__forma {
+  background: var(--valido);
+  border-radius: 50%;
+}
+
+.segno[data-segno="forse"] {
+  color: var(--esteso);
+}
+
+.segno[data-segno="forse"] .segno__forma {
+  background: var(--esteso);
+  clip-path: polygon(50% 4%, 100% 100%, 0 100%);
+  align-items: flex-end;
+  font-size: calc(var(--segno-lato) * 0.6);
+  padding-bottom: 1px;
+}
+
+.segno[data-segno="no"] {
+  color: var(--invalido);
+}
+
+.segno[data-segno="no"] .segno__forma {
+  background: var(--invalido);
+  border-radius: 1px;
+}
+
+.segno__parola {
+  color: var(--testo);
+}
+
+/* --- le due impronte a confronto ----------------------------------------- */
+
+.impronta {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.impronta__riga {
+  display: grid;
+  gap: 2px;
+}
+
+.impronta__nome {
+  font-size: var(--t-minuto);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.impronta__valore {
+  font-family: var(--macchina);
+  font-size: var(--t-macchina);
+  line-height: 1.55;
+  color: var(--testo);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.6ch;
+}
+
+.impronta__gruppo[data-diverso="si"] {
+  color: var(--invalido);
+  text-decoration: underline 2px;
+  text-underline-offset: 2px;
+}
+
+.impronta[data-coincide="si"] .impronta__valore {
+  color: var(--valido);
+}
+
+/* --- le prove strutturali dell'attacco 1b -------------------------------- */
+
+.prove {
+  margin-top: 14px;
+  border: var(--filo) solid var(--linea);
+  border-radius: var(--raggio);
+  padding: 10px 12px;
+  background: var(--fondo-alto);
+}
+
+.prove__titolo {
+  margin: 0;
+  font-family: var(--macchina);
+  font-size: var(--t-minuto);
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.prove .campi {
+  margin-top: 6px;
+}
+
+.prove .controllo {
+  margin-top: 8px;
+}
+
+/* --- il riepilogo di chiusura -------------------------------------------- */
+
+/* Il riquadro che scorre al posto della pagina. Su schermo stretto in studio le cinque colonne
+   non ci stanno, e fra il troncarne una e il farle scorrere si fanno scorrere: e' una tabella di
+   riscontro, e una colonna in meno vorrebbe dire un controllo in meno. */
+.riepilogo__riquadro {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.riepilogo {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: var(--t-macchina);
+}
+
+.riepilogo th,
+.riepilogo td {
+  text-align: left;
+  padding: 7px 8px;
+  border-bottom: var(--filo) solid var(--linea);
+  vertical-align: baseline;
+}
+
+.riepilogo thead th {
+  font-weight: 400;
+  font-size: var(--t-minuto);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.riepilogo tbody th {
+  font-weight: 400;
+  color: var(--testo);
+  white-space: nowrap;
+}
+
+.riepilogo td {
+  color: var(--tenue);
+}
+
+body[data-modalita="presentazione"] .riepilogo th:nth-child(n + 3),
+body[data-modalita="presentazione"] .riepilogo td:nth-child(n + 3) {
+  display: none;
+}
+
+/* =============================================================================
+   l'albero ASN.1
+   ========================================================================== */
+
+.apribile {
+  margin-top: 6px;
+}
+
+.asn1 {
+  margin-top: 8px;
+}
+
+.asn1__albero {
+  max-height: 40vh;
+  overflow: auto;
+  scrollbar-width: thin;
+  border: var(--filo) solid var(--linea);
+  border-radius: var(--raggio);
+  background: var(--fondo-alto);
+  padding: 6px 0;
+}
+
+/* La riga e' larga quanto il suo contenuto e mai meno del riquadro: e' lo stesso trattamento
+   che `.dump__riga` ha da sempre, e li' funziona. Con l'ultima traccia a `minmax(0, 1fr)` la
+   riga non sbordava MAI, quindi `overflow-x` del riquadro non si attivava mai, e le celle
+   troppo lunghe venivano tagliate senza nessun modo di recuperarle: 93 celle su tutta la pagina,
+   fra cui «sha256WithRSAEncrypt…» dentro il pannello che deve dimostrare che il CMS e' vero.
+   La colonna del tag e' 19ch perche' l'etichetta piu' lunga del vocabolario di asn1-view e'
+   «OBJECT IDENTIFIER», diciassette caratteri, e a 16ch diventava «OBJECT IDENTIF…». */
+.asn1__riga {
+  display: grid;
+  grid-template-columns: 6ch 19ch 6ch auto;
+  gap: 0 1ch;
+  width: max-content;
+  min-width: 100%;
+  padding: 2px 10px 2px calc(10px + var(--livello) * 1.4ch);
+  font-size: calc(var(--t-macchina) * 0.92);
+  line-height: 1.45;
+  white-space: nowrap;
+}
+
+.asn1__riga:hover {
+  background: var(--legame-fondo);
+}
+
+.asn1__offset {
+  color: var(--tenue);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.asn1__tag {
+  color: var(--legame);
+}
+
+.asn1__lunghezza {
+  color: var(--tenue);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.asn1__valore {
+  color: var(--testo);
+}
+
+/* Seduti si legge tutto senza scorrere: in studio la riga va a capo invece di allungarsi, e il
+   valore si porta dietro l'indentazione della sua colonna. In presentazione no — una riga che
+   va a capo dentro un albero ne rompe l'allineamento, che li' e' l'informazione. */
+body[data-modalita="studio"] .asn1__riga {
+  width: auto;
+  grid-template-columns: 6ch 19ch 6ch minmax(0, 1fr);
+  white-space: normal;
+}
+
+body[data-modalita="studio"] .asn1__valore {
+  overflow-wrap: anywhere;
+}
+
+.asn1__coda,
+.asn1__guasto {
+  margin: 6px 0 0;
+  font-size: var(--t-minuto);
+  letter-spacing: 0.08em;
+  color: var(--tenue);
+}
+
+.asn1__guasto {
+  color: var(--invalido);
+}
+
+/* =============================================================================
+   pezzi della lettura umana
+   ========================================================================== */
+
+.trascrizione {
+  margin-top: 16px;
+  padding: 14px 18px;
+  background: var(--fondo-alto);
+  border-left: 2px solid var(--legame);
+  font-family: var(--umano);
+  font-size: calc(var(--t-corpo) * 0.95);
+  line-height: 1.5;
+  color: var(--testo);
+}
+
+.trascrizione__riga {
+  margin: 0 0 0.2em;
+}
+
+.trascrizione__riga:last-child {
+  margin-bottom: 0;
+}
+
+.citazione {
+  margin-top: 16px;
+  display: grid;
+  gap: 4px;
+}
+
+.citazione__nome {
+  font-family: var(--macchina);
+  font-size: var(--t-minuto);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--tenue);
+}
+
+.citazione__testo {
+  font-family: var(--umano);
+  font-size: calc(var(--t-titolo) * 0.72);
+  line-height: 1.25;
+  color: var(--testo);
+  quotes: "«" "»";
+}
+
+/* =============================================================================
+   la sintesi del banco e i pannelli di teoria
+   ========================================================================== */
+
+.sintesi__vuoto,
+.sintesi__nota {
+  margin: 0 0 10px;
+  font-size: var(--t-macchina);
+  line-height: 1.5;
+  color: var(--tenue);
+}
+
+.sintesi__nota {
+  border-left: 2px solid var(--legame);
+  padding-left: 10px;
+  color: var(--testo);
+}
+
+.sintesi__avvisi {
+  margin-top: 14px;
+  border-top: var(--filo) solid var(--linea);
+  padding-top: 10px;
+}
+
+.sintesi__avviso {
+  margin: 2px 0 0;
+  font-size: calc(var(--t-macchina) * 0.94);
+  color: var(--esteso);
+  overflow-wrap: anywhere;
+}
+
+.teoria {
+  border-top: var(--filo) solid var(--carta-linea);
+  margin-top: calc(var(--gutter) * 2);
+}
+
+.riga--teoria .cella {
+  padding-block: 6px calc(var(--gutter) * 0.7);
+}
+
+.apribile__regione {
+  margin-top: 12px;
+}

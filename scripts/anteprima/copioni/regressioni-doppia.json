@@ -1,0 +1,95 @@
+[
+  {
+    "_copione": "Le regressioni della direzione visiva C — «Doppia esposizione».",
+    "_perche": "Undici riparazioni erano state misurate a mano, una per una, e nessuna congelata: al giro dopo si ricominciava da capo, e per strada si era persa una cosa grossa (i pannelli del giro precedente che restavano in pagina dopo «Ricomincia»). Qui ogni invariante e un assegno che si scopre da solo: l azione LANCIA se la misura non torna, e l anteprima esce con codice diverso da zero.",
+    "_uso": "node scripts/anteprima/anteprima.mjs --entry doppia-esposizione --larghezza 1280 --altezza 900 --copione scripts/anteprima/copioni/regressioni-doppia.json --scatti /tmp/regressioni-doppia; echo \"esito: $?\"",
+    "_costo": "Misurati 20,5 s a 1280x900: build della entry, due giri interi della demo (ventiquattro passi) e un reset a macchina in moto. Per questo NON sta dentro `npm test`, che gira in cinque secondi e non ha un browser: chi tocca questa direzione lo lancia a mano prima di dire che ha finito. Cio che si puo provare senza DOM sta invece in src/design/doppia/giro.test.mjs, ed e dentro `npm test`.",
+    "_dove_guardare": "Se un azione fallisce, il messaggio contiene le misure: il rapporto le stampa e i PNG degli stati che contano restano nella cartella degli scatti.",
+    "_taratura": "Le soglie in pixel valgono per 1280x900 in presentazione, che e la finestra piu stretta in cui questa pagina viene proiettata. A 1920x1080 c e piu spazio e passano a maggior ragione."
+  },
+
+  {
+    "_nota": "Gli attrezzi della prova, definiti una volta sola sulla finestra.",
+    "aspetta": "document.body.dataset.boot === 'ok' && !!window.__demo",
+    "js": "window.__esigi = (nome, ok, misure) => { if (!ok) throw new Error(nome + ' — ' + JSON.stringify(misure)); return misure };\nwindow.__mobilia = () => { const plancia=document.querySelector('.plancia').getBoundingClientRect(); const banco=document.querySelector('.banco').getBoundingClientRect(); return document.body.dataset.appeso === 'si' && document.body.dataset.dump !== 'aperto' ? Math.max(plancia.bottom, banco.bottom) : plancia.bottom };\nwindow.__bancoOpaco = () => { const banco=document.querySelector('.banco'); const rb=banco.getBoundingClientRect(); const rp=document.querySelector('.plancia').getBoundingClientRect(); const cima=Math.max(rb.top, rp.bottom); const fondo=Math.min(rb.bottom, window.innerHeight); let punti=0, intrusi=0, primo=null; for (let y=Math.ceil(cima)+1; y<fondo-1; y+=16) { for (let x=Math.ceil(rb.left)+1; x<rb.right-1; x+=16) { punti++; const e=document.elementFromPoint(x,y); if (!e || !(e===banco || banco.contains(e))) { intrusi++; if (!primo) primo={x,y,chi:e?e.className:null} } } } return { punti, intrusi, primo } };\nwindow.__fuoco = async (comandi) => { let peggio=null; for (const b of comandi) { b.focus(); await new Promise(r=>setTimeout(r,120)); const r=b.getBoundingClientRect(); const m=window.__mobilia(); const sotto=Math.round((r.top-m)*10)/10; const centro=document.elementFromPoint(Math.round(r.left+r.width/2), Math.round(r.top+r.height/2)); const suo=centro===b||b.contains(centro); if (!peggio || sotto<peggio.sotto) peggio={ testo:b.textContent.trim().slice(0,32), top:Math.round(r.top*10)/10, mobilia:Math.round(m*10)/10, sotto, ilPuntoCentraleE:centro?centro.className:null, riceveIlClick:suo }; } return peggio };\nreturn { pannelli: document.querySelectorAll('.pila [data-pannello]').length, dump: document.body.dataset.dump }",
+    "attendi": 300
+  },
+
+  {
+    "nome": "01-caricamento",
+    "_nota": "Lo stato di partenza, e la misura della fascia con cui si confrontera quella dopo il reset.",
+    "js": "const p=document.querySelector('.plancia').getBoundingClientRect().height; window.__planciaAlCarico=Math.round(p*10)/10; const misure={ pannelli: document.querySelectorAll('.pila [data-pannello]').length, righeDump: document.querySelectorAll('.dump__riga').length, dump: document.body.dataset.dump, passo: document.body.dataset.passoCorrente, verdetto: document.body.dataset.verdetto, avvio: document.body.dataset.avvio, plancia: window.__planciaAlCarico, orizzontale: document.documentElement.scrollWidth - document.documentElement.clientWidth }; return window.__esigi('la pagina appena caricata non e vuota', misure.pannelli===0 && misure.righeDump===0 && misure.dump==='chiuso' && misure.passo==='' && misure.verdetto==='' && misure.avvio==='si' && misure.orizzontale<=0, misure)",
+    "attendi": 200
+  },
+
+  {
+    "js": "for (const id of ['documento','chiavi','certificato','placeholder','impronta','cms','firma']) { await window.__demo.run(id) } await new Promise(r=>setTimeout(r,1200)); return window.__demo.getState().passiFatti.length",
+    "attendi": 300
+  },
+
+  {
+    "nome": "02-verifica",
+    "_nota": "GRAVE 2: dopo il verdetto, il pannello che lo spiega deve stare a schermo. Si misura a scorrimento FINITO, cioe dopo l animazione: prima si misurava il volo.",
+    "js": "await window.__demo.run('verifica'); await new Promise(r=>setTimeout(r,1800)); const t=document.querySelector('[data-pannello=\"verifica\"] .testo'); const r=t.getBoundingClientRect(); const m=window.__mobilia(); const scoperto=Math.max(0, Math.min(r.bottom, window.innerHeight) - Math.max(r.top, m)); const sonda=document.elementFromPoint(Math.round(r.left+r.width/2), Math.round(Math.max(r.top, m)+12)); const pannello=sonda?(sonda.closest('[data-pannello]')||{dataset:{}}).dataset.pannello:null; const misure={ y: Math.round(r.top*10)/10, altezza: Math.round(r.height*10)/10, scopertoDallaMobilia: Math.round(scoperto*10)/10, mobiliaFinoA: Math.round(m*10)/10, finestra: window.innerHeight, sopraQuelPuntoCe: pannello, verdetto: document.body.dataset.verdetto }; return window.__esigi('il pannello del verdetto non e leggibile sotto la mobilia', misure.scopertoDallaMobilia >= 90 && misure.sopraQuelPuntoCe==='verifica' && misure.verdetto==='valid', misure)",
+    "attendi": 300
+  },
+
+  {
+    "nome": "03-banco-opaco",
+    "_nota": "Il banco appeso non deve lasciar passare niente: sotto ci scorrono i pannelli, e un campo di un altro passo che traspare dentro la lettura corrente e il difetto piu grave che questa direzione abbia avuto. Si escludono i punti coperti dalla fascia, che sta SOPRA il banco e non e un intruso.",
+    "js": "const misure=window.__bancoOpaco(); misure.appeso=document.body.dataset.appeso; return window.__esigi('qualcosa traspare attraverso il banco', misure.intrusi===0 && misure.punti>500 && misure.appeso==='si', misure)",
+    "attendi": 150
+  },
+
+  {
+    "nome": "04-fuoco-da-tastiera",
+    "_nota": "GRAVE 3 (WCAG 2.2, criterio 2.4.11): col banco appeso, un comando che prende il fuoco non deve restare sotto la mobilia. Si provano tutti i comandi della pila e della teoria, e si riporta il peggiore.",
+    "js": "const comandi=[...document.querySelectorAll('.pila button'), ...document.querySelectorAll('.teoria button')]; const peggio=await window.__fuoco(comandi); peggio.quanti=comandi.length; return window.__esigi('un comando prende il fuoco sotto la mobilia appesa', peggio.quanti>=4 && peggio.sotto >= -1 && peggio.riceveIlClick===true, peggio)",
+    "attendi": 200
+  },
+
+  {
+    "js": "for (const id of ['attacco-cifra','attacco-lettere','attacco-coda','chiusura']) { await window.__demo.run(id) } await new Promise(r=>setTimeout(r,1500)); const s=window.__demo.getState(); const pan=document.querySelector('[data-pannello=\"certificato\"] .blocco'); window.__primoGiro={ pannelli: document.querySelectorAll('.pila [data-pannello]').length, ordine: [...document.querySelectorAll('.pila [data-pannello]')].map(n=>n.dataset.pannello).join(','), impronta: pan.textContent.replace(/ /g,'') }; return { ...window.__primoGiro, verdetto: s.verdetto }",
+    "attendi": 300
+  },
+
+  {
+    "nome": "05-fine-del-primo-giro",
+    "js": "const misure={ ...window.__primoGiro, orizzontale: document.documentElement.scrollWidth - document.documentElement.clientWidth }; return window.__esigi('la pila non contiene i dodici pannelli, in ordine', misure.pannelli===12 && misure.ordine==='documento,chiavi,certificato,placeholder,impronta,cms,firma,verifica,attacco-cifra,attacco-lettere,attacco-coda,chiusura' && misure.orizzontale<=0, misure)",
+    "attendi": 200
+  },
+
+  {
+    "nome": "06-dopo-ricomincia",
+    "_nota": "IL BLOCCANTE. «Ricomincia» deve riportare la pagina a com era al caricamento: nessun pannello, nessun byte nel dump, nessun punto acceso, nessuna teoria aperta, la fascia alta come prima. Il comando si preme come lo premerebbe chi presenta, dal DOM.",
+    "js": "document.querySelector('[data-azione=\"reset\"]').click(); await new Promise(r=>setTimeout(r,600)); const s=window.__demo.getState(); const misure={ pannelli: document.querySelectorAll('.pila [data-pannello]').length, righeDump: document.querySelectorAll('.dump__riga').length, dump: document.body.dataset.dump, chipAccesi: document.querySelectorAll('.chip[aria-pressed=\"true\"]').length, teoriaAperta: document.querySelectorAll('.teoria [aria-expanded=\"true\"]').length, passo: document.body.dataset.passoCorrente, verdetto: document.body.dataset.verdetto, avvio: document.body.dataset.avvio, passiFatti: s.passiFatti.length, scrollY: Math.round(window.scrollY), plancia: Math.round(document.querySelector('.plancia').getBoundingClientRect().height*10)/10, planciaAlCarico: window.__planciaAlCarico }; return window.__esigi('dopo «Ricomincia» resta in pagina roba del giro precedente', misure.pannelli===0 && misure.righeDump===0 && misure.dump==='chiuso' && misure.chipAccesi===0 && misure.teoriaAperta===0 && misure.passo==='' && misure.verdetto==='' && misure.avvio==='si' && misure.passiFatti===0 && misure.scrollY===0 && misure.plancia===misure.planciaAlCarico, misure)",
+    "attendi": 400
+  },
+
+  {
+    "nome": "07-secondo-giro",
+    "_nota": "I tre passi nuovi devono mostrare i valori NUOVI: l impronta nel pannello e quella del certificato appena costruito, non quella di prima.",
+    "js": "for (const id of ['documento','chiavi','certificato']) { await window.__demo.run(id) } await new Promise(r=>setTimeout(r,600)); const s=window.__demo.getState(); const pan=document.querySelector('[data-pannello=\"certificato\"] .blocco'); const mostrata=pan.textContent.replace(/ /g,''); const misure={ pannelli: document.querySelectorAll('.pila [data-pannello]').length, mostrata: mostrata.slice(0,24), vera: s.risultati.certificato.impronta.slice(0,24), eraDelGiroPrima: mostrata===window.__primoGiro.impronta }; return window.__esigi('il pannello mostra l impronta di un certificato che non esiste piu', misure.pannelli===3 && misure.mostrata===misure.vera && misure.eraDelGiroPrima===false, misure)",
+    "attendi": 400
+  },
+
+  {
+    "nome": "08-il-giro-rifatto",
+    "_nota": "E infine: la demo rifatta per intero dopo un reset deve dare la stessa pagina della prima volta, stessi pannelli nello stesso ordine.",
+    "js": "for (const id of ['placeholder','impronta','cms','firma','verifica','attacco-cifra','attacco-lettere','attacco-coda','chiusura']) { await window.__demo.run(id) } await new Promise(r=>setTimeout(r,1500)); const ordine=[...document.querySelectorAll('.pila [data-pannello]')].map(n=>n.dataset.pannello).join(','); const misure={ pannelli: document.querySelectorAll('.pila [data-pannello]').length, ordine, stessoOrdine: ordine===window.__primoGiro.ordine, verdetto: document.body.dataset.verdetto, passo: document.body.dataset.passoCorrente, orizzontale: document.documentElement.scrollWidth - document.documentElement.clientWidth }; return window.__esigi('il secondo giro non da la stessa pagina del primo', misure.pannelli===12 && misure.stessoOrdine && misure.verdetto==='extended' && misure.passo==='chiusura' && misure.orizzontale<=0, misure)",
+    "attendi": 400
+  },
+
+  {
+    "nome": "09-ricomincia-a-macchina-in-moto",
+    "_nota": "«Ricomincia» e il bottone di emergenza: davanti a una sala deve rispondere anche mentre un passo gira. Qui si preme durante la generazione delle chiavi, e il passo in volo non deve lasciare niente in pagina — ne un pannello, ne un disegno di pdf.js arrivato in ritardo.",
+    "js": "document.querySelector('[data-azione=\"reset\"]').click(); await new Promise(r=>setTimeout(r,400)); await window.__demo.run('documento'); const inVolo=window.__demo.run('chiavi'); await new Promise(r=>setTimeout(r,120)); document.querySelector('[data-azione=\"reset\"]').click(); await inVolo.catch(()=>{}); await new Promise(r=>setTimeout(r,2500)); const s=window.__demo.getState(); const misure={ pannelli: document.querySelectorAll('.pila [data-pannello]').length, passiFatti: s.passiFatti.length, inCorso: s.inCorso, errore: s.errore ? s.errore.messaggio : null, avvio: document.body.dataset.avvio, statoDocumento: document.querySelector('.documento').dataset.stato, righello: document.querySelector('.righello').dataset.stato }; return window.__esigi('un reset a macchina in moto lascia qualcosa in pagina', misure.pannelli===0 && misure.passiFatti===0 && misure.inCorso===null && misure.errore===null && misure.avvio==='si' && misure.statoDocumento==='vuoto' && misure.righello==='vuoto', misure)",
+    "attendi": 400
+  },
+
+  {
+    "nome": "10-e-si-riparte",
+    "js": "for (const id of ['documento','chiavi','certificato']) { await window.__demo.run(id) } await new Promise(r=>setTimeout(r,800)); const s=window.__demo.getState(); const pan=document.querySelector('[data-pannello=\"certificato\"] .blocco'); const misure={ pannelli: document.querySelectorAll('.pila [data-pannello]').length, improntaGiusta: pan.textContent.replace(/ /g,'')===s.risultati.certificato.impronta, documento: document.querySelector('.documento').dataset.stato }; return window.__esigi('dopo il reset d emergenza la demo non riparte pulita', misure.pannelli===3 && misure.improntaGiusta && misure.documento==='disegnato', misure)",
+    "attendi": 400
+  }
+]

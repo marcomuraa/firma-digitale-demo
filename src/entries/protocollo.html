@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <!-- Il titolo definitivo lo scrive il JavaScript al boot, con la variante
+         giusta (muta o narrata). Questo e solo il ripiego se lo script non parte. -->
+    <title>Firma digitale PAdES — Protocollo</title>
+  </head>
+  <body>
+    <!-- Radice della pagina: la riempie src/design/protocollo/pagina.js. -->
+    <div id="app"></div>
+
+    <noscript>
+      <p>
+        Questa pagina firma davvero un documento PDF nel browser: senza JavaScript non c e
+        niente da mostrare. Riattivalo e riapri il file.
+      </p>
+    </noscript>
+
+    <script type="module" src="./protocollo.js"></script>
+  </body>
+</html>

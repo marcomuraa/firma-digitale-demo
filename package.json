@@ -1,0 +1,29 @@
+{
+  "name": "firma-digitale-demo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Demo didattica: firma digitale PAdES reale su un PDF campione, verificabile interamente nella pagina.",
+  "scripts": {
+    "test": "node --test",
+    "dev": "vite",
+    "dev:narrato": "NARRATED=1 vite",
+    "build": "node scripts/build/build-all.mjs",
+    "build:check": "node scripts/build/check-selfcontained.mjs",
+    "preview": "vite preview",
+    "pdf": "node scripts/pdf/make-sample-pdf.mjs",
+    "pdf:validate": "node scripts/pdf/validate-sample-pdf.mjs"
+  },
+  "dependencies": {
+    "@signpdf/placeholder-pdf-lib": "^3.3.0",
+    "asn1js": "^3.0.10",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.2.108",
+    "pkijs": "^3.4.0",
+    "pvutils": "^1.2.0"
+  },
+  "devDependencies": {
+    "vite": "^8.2.1",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}

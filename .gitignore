@@ -1,0 +1,81 @@
+# Regola unica: si versiona cio che un altro non puo rigenerare con un comando.
+# Ogni voce qui sotto dice anche COME si rigenera cio che esclude: senza quella
+# informazione un .gitignore e una cancellazione, non una decisione.
+
+# Dipendenze. Si ricostruiscono da package-lock.json, che invece va committato.
+node_modules/
+
+# I quattro HTML autoconsistenti. Si rigenerano con "npm run build", che comunque
+# svuota dist/ a ogni esecuzione: versionarli darebbe solo diff da megabyte.
+dist/
+
+# Spike pdf.js: gli HTML costruiti. Si rigenerano con "sh spikes/pdfjs/build-all.sh".
+# Cio che vale dello spike e la ricetta (spikes/pdfjs/RECIPE.md) e i sorgenti in
+# spikes/pdfjs/src/, che restano versionati.
+spikes/pdfjs/dist/
+
+# Uscite dei collaudi: PDF firmati e manomessi, DER, PEM, .bin, referti. Si rigenerano con
+#   sh scripts/collaudo/firma-reale/collauda.sh
+#   node scripts/collaudo/copertura/aggira.mjs
+#   node scripts/collaudo/copertura/onesta-attacco-1.mjs
+# Oltre al peso: firma.mjs genera una coppia di chiavi NUOVA a ogni esecuzione, quindi
+# questi file non sono riproducibili byte per byte; aggira.json incorpora percorsi assoluti
+# della macchina di sviluppo; e i PDF falsificati hanno senso accanto allo script che li
+# produce, non da soli.
+scripts/collaudo/*/out/
+
+# Generazione della narrazione: i .wav e i .opus intermedi. Si rigenerano su macOS con
+#   node scripts/narration/make-narration.mjs --forza
+# Il prodotto che serve al bundle NON e qui: e src/assets/narrazione/segments.js, versionato.
+scripts/narration/out/
+
+# Sonda vocale: l'audio dei campioni. La decisione e presa (docs/decisioni.md) e la prova
+# quantitativa — durate, livelli, bitrate, SHA-256 dei modelli — sta in narration-probe/RAPPORTO.md.
+narration-probe/out/
+
+# Configurazione locale di Claude Code. Un eventuale .claude/settings.json condiviso
+# andrebbe invece versionato.
+.claude/settings.local.json
+
+# Rumore di macOS e degli editor. I .DS_Store non sono solo rumore: conservano i nomi dei
+# file passati per quella cartella, compresi quelli poi cancellati.
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Log e temporanei.
+*.log
+*.tmp
+tmp/
+.cache/
+
+# Segreti. Oggi il progetto non ne ha nessuno e va tenuto cosi.
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------------------
+# NON aggiungere qui, per quanto l'intestazione del file dica "GENERATO":
+#
+#   src/assets/sample-offsets.json  import statico del bundle (machine.js, attacks.js,
+#                                   doppia/documento.js): senza, "npm run build" non parte
+#   src/assets/sample.pdf           i 1285 byte su cui poggia la demo; cinque test lo
+#                                   leggono da disco
+#   src/ui/sample-pdf.js            il campione in base64: unica via con cui i byte
+#                                   arrivano al browser (niente fs, niente ?url)
+#   src/ui/standard-fonts.js        il font base-14; il generatore stesso lo dichiara
+#                                   "un sorgente versionato come gli altri"
+#   src/assets/narrazione/segments.js  l'audio della narrazione in base64: si genera solo su
+#                                   macOS con "say -v Alice", quindi chi clona da altrove non
+#                                   potrebbe rigenerarlo
+#   spikes/pdfjs/sample.pdf
+#   spikes/pdfjs/src/sample-pdf.js
+#   spikes/pdfjs/src/standard-fonts.js
+#   package-lock.json               l'unica cosa che rende riproducibile l'ambiente
+# ---------------------------------------------------------------------------

@@ -1,0 +1,38 @@
+# Attribuzioni
+
+Questo progetto e distribuito sotto licenza MIT (vedi `LICENSE`). Incorpora pero,
+nei file che produce e in un sorgente versionato, materiale di terze parti che
+mantiene la propria licenza. Qui sta l'elenco.
+
+## Materiale incorporato nei sorgenti del repository
+
+**`src/ui/standard-fonts.js`** contiene `FoxitSerif.pfb` codificato in base64,
+estratto da `node_modules/pdfjs-dist/standard_fonts/`. E uno dei font base-14 che
+pdf.js distribuisce per rendere i PDF che non incorporano i propri font: serve alla
+`BinaryDataFactory` di `src/ui/pdf-render.js` perche il documento a schermo sia
+identico su ogni macchina, senza toccare la rete.
+
+    pdf.js — Copyright Mozilla Foundation e collaboratori
+    Licenza Apache-2.0 — https://github.com/mozilla/pdf.js/blob/master/LICENSE
+
+Lo stesso vale per `spikes/pdfjs/src/standard-fonts.js`.
+
+## Materiale incorporato nei file prodotti da `npm run build`
+
+I quattro HTML in `dist/` sono autoconsistenti: `vite-plugin-singlefile` vi inlinea
+per intero le dipendenze, che restano soggette alla propria licenza.
+
+| Dipendenza                     | Versione | Licenza      |
+|--------------------------------|----------|--------------|
+| `pdfjs-dist`                   | 6.2.108  | Apache-2.0   |
+| `pkijs`                        | 3.4.0    | BSD-3-Clause |
+| `asn1js`                       | 3.0.10   | BSD-3-Clause |
+| `pvutils`                      | 1.2.0    | MIT          |
+| `pdf-lib`                      | 1.17.1   | MIT          |
+| `@signpdf/placeholder-pdf-lib` | 3.3.0    | MIT          |
+| `vite`                         | 8.2.1    | MIT          |
+| `vite-plugin-singlefile`       | 2.3.3    | MIT          |
+
+`pdf-lib` e `@signpdf/placeholder-pdf-lib` non entrano nel bundle della demo: sono
+usate solo da `scripts/pdf/validate-sample-pdf.mjs`, la cui sezione 10 documenta
+*perche* non sono utilizzabili per costruire il placeholder PAdES di questo progetto.

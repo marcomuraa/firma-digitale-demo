@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Narrazione — i dodici segmenti</title>
+<style>
+  :root {
+    --carta:      #f4f2ec;
+    --carta-alta: #fffefb;
+    --inchiostro: #1b2430;
+    --tenue:      #5d6673;
+    --filo:       #d6d2c6;
+    --timbro:     #2b3a8f;
+    --evidenza:   #fdf6d8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --carta:      #14181e;
+      --carta-alta: #1c222a;
+      --inchiostro: #e6e3db;
+      --tenue:      #9aa3b0;
+      --filo:       #333c48;
+      --timbro:     #93a6ff;
+      --evidenza:   #2c2a1c;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    padding: 2.5rem 1.25rem 5rem;
+    background: var(--carta);
+    color: var(--inchiostro);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 46rem; margin: 0 auto; }
+
+  header { border-bottom: 2px solid var(--inchiostro); padding-bottom: 1.5rem; margin-bottom: 2rem; }
+  .occhiello {
+    font-size: .75rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--tenue); margin: 0 0 .6rem;
+  }
+  h1 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 1.2rem; font-weight: 600; }
+  .conto {
+    margin: 0; padding: 1rem 1.25rem;
+    background: var(--evidenza); border-left: 4px solid var(--timbro);
+    font-size: 1.05rem; line-height: 1.55;
+  }
+  header p.nota { color: var(--tenue); font-size: .95rem; margin: 1.2rem 0 0; }
+
+  .segmento {
+    background: var(--carta-alta);
+    border: 1px solid var(--filo);
+    border-radius: 4px;
+    padding: 1.15rem 1.4rem 1.35rem;
+    margin-bottom: 1.25rem;
+  }
+  .segmento h2 {
+    font-size: 1.05rem; margin: 0; font-weight: 600;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: .55rem;
+  }
+  .numero {
+    font-size: .7rem; letter-spacing: .08em;
+    color: #fffefb; background: var(--timbro);
+    padding: .2rem .45rem; border-radius: 3px; font-weight: 700;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) { .numero { color: #14181e; } }
+  .segmento h2 code { color: var(--tenue); font-weight: 400; font-size: .8rem; }
+  .meta { color: var(--tenue); font-size: .82rem; margin: .5rem 0 .9rem; }
+  .meta b { color: var(--inchiostro); }
+  audio { width: 100%; display: block; margin-bottom: .9rem; }
+  .letto {
+    margin: 0; padding: .9rem 1rem;
+    border-left: 3px solid var(--filo);
+    color: var(--tenue); font-size: .92rem; line-height: 1.75;
+  }
+  .detto { color: var(--inchiostro); font-weight: 600; }
+  .pron { font-weight: 400; font-size: .78em; color: var(--timbro); margin-left: .3em; white-space: nowrap; }
+
+  .coda { border-top: 1px solid var(--filo); margin-top: 2.5rem; padding-top: 1.5rem; }
+  .coda h2 { font-size: 1rem; margin: 0 0 .7rem; }
+  .coda p { color: var(--tenue); font-size: .9rem; margin: 0 0 .7rem; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88em; }
+</style>
+</head>
+<body>
+<main>
+
+  <header>
+    <p class="occhiello">Demo firma digitale — la voce della narrazione</p>
+    <h1>I dodici segmenti, in ordine. Il copione intero senza costruire la demo.</h1>
+    <p class="conto">
+      <b>5′ 17,5″</b> di parlato in 12 segmenti,
+      1,21 MB in Opus mono a 32 kbps.
+      La stima a 160 parole al minuto diceva 5′ 35,0″.
+    </p>
+    <p class="nota">
+      Voce <code>say -v Alice</code> di macOS, ritmo predefinito. Sotto ogni lettore c’è il testo
+      <b>come si legge a schermo</b>; le due sole parole che alla voce arrivano scritte diversamente
+      sono marcate con la pronuncia accanto. Se una frase suona storta si corregge in
+      <code>src/ui/script.it.js</code>, e si rigenera quel segmento soltanto.
+    </p>
+    <p class="nota">
+      Pagina <b>generata</b> da <code>scripts/narration/make-narration.mjs</code>: modificarla a mano
+      non serve, si riscrive da sé. Nessuna risorsa esterna e nessuno script — i lettori puntano ai
+      file dentro <code>out/</code>, qui accanto, quindi la cartella si sposta tutta intera o non si
+      sposta.
+    </p>
+  </header>
+
+  <section class="segmento" id="documento">
+    <h2>
+      <span class="numero">01</span>
+      Un documento e i suoi byte
+      <code>documento</code>
+    </h2>
+    <p class="meta">
+      <b>25,0 s</b> · stima 26 s
+      (−1,0 s) · 70 parole a
+      167,7 al minuto · 97,7 kB ·
+      volume medio −15,4 dB
+    </p>
+    <audio controls preload="metadata" src="out/documento.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/documento.opus</code>.
+    </audio>
+    <p class="letto">Questo è il documento che firmeremo. È una promessa di pagamento: qualcuno si impegna a versare mille euro entro la fine di settembre. Non ha alcun valore legale: esiste solo per questa dimostrazione. Noi leggiamo delle parole. Il computer vede soltanto byte: numeri in fila, uno dietro l’altro. Le parole sono lì dentro, in chiaro. Adesso su questo file costruiamo una firma vera, quella dello standard che si chiama <b class="detto">PAdES<span class="pron">detto «pades»</span></b>.</p>
+  </section>
+
+  <section class="segmento" id="chiavi">
+    <h2>
+      <span class="numero">02</span>
+      La coppia di chiavi
+      <code>chiavi</code>
+    </h2>
+    <p class="meta">
+      <b>18,6 s</b> · stima 20 s
+      (−1,4 s) · 54 parole a
+      174,4 al minuto · 72,1 kB ·
+      volume medio −15,7 dB
+    </p>
+    <audio controls preload="metadata" src="out/chiavi.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/chiavi.opus</code>.
+    </audio>
+    <p class="letto">Una firma digitale nasce da una coppia di numeri, generati insieme, adesso. Uno dei due resta privato: non lascia mai questa macchina, ed è quello che firma. L’altro è pubblico, e si può dare a chiunque: serve a controllare. Dal pubblico non si risale al privato. È questa asimmetria che regge tutto il resto.</p>
+  </section>
+
+  <section class="segmento" id="certificato">
+    <h2>
+      <span class="numero">03</span>
+      Il certificato X.509
+      <code>certificato</code>
+    </h2>
+    <p class="meta">
+      <b>17,7 s</b> · stima 17 s
+      (+0,7 s) · 46 parole a
+      155,8 al minuto · 68,9 kB ·
+      volume medio −15,7 dB
+    </p>
+    <audio controls preload="metadata" src="out/certificato.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/certificato.opus</code>.
+    </audio>
+    <p class="letto">La chiave pubblica, da sola, è un numero anonimo. Il certificato le attacca un nome, e una scadenza. Nel mondo reale a garantirlo è un’autorità riconosciuta. Qui garantisce se stesso, perché tutto succede dentro questa pagina: la matematica regge lo stesso, la fiducia è un’altra faccenda.</p>
+  </section>
+
+  <section class="segmento" id="placeholder">
+    <h2>
+      <span class="numero">04</span>
+      Il buco e il /ByteRange
+      <code>placeholder</code>
+    </h2>
+    <p class="meta">
+      <b>22,5 s</b> · stima 25 s
+      (−2,5 s) · 66 parole a
+      176,0 al minuto · 87,6 kB ·
+      volume medio −15,5 dB
+    </p>
+    <audio controls preload="metadata" src="out/placeholder.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/placeholder.opus</code>.
+    </audio>
+    <p class="letto">Adesso viene la parte curiosa. La firma deve stare dentro il documento, ma non può firmare se stessa. Allora prima si scava un buco vuoto, della misura giusta, e lo si riempirà alla fine. Il documento dichiara anche quali sue parti sono coperte: quella prima del buco, e quella dopo. Questa dichiarazione ha un nome: <b class="detto">ByteRange<span class="pron">detto «bait reinge»</span></b>. Il buco è l’unica zona che la firma non protegge.</p>
+  </section>
+
+  <section class="segmento" id="impronta">
+    <h2>
+      <span class="numero">05</span>
+      L’impronta SHA-256
+      <code>impronta</code>
+    </h2>
+    <p class="meta">
+      <b>30,3 s</b> · stima 30 s
+      (+0,3 s) · 79 parole a
+      156,2 al minuto · 117,3 kB ·
+      volume medio −15,8 dB
+    </p>
+    <audio controls preload="metadata" src="out/impronta.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/impronta.opus</code>.
+    </audio>
+    <p class="letto">Adesso il programma calcola un’impronta del documento: un numero corto, sempre della stessa lunghezza, ricavato da tutti i byte coperti. Ha due proprietà che la rendono preziosa. La prima: se cambia anche una sola lettera, l’impronta cambia completamente, non un pochino. La seconda: dall’impronta non si torna indietro al documento. Notate che il calcolo salta il buco: prende i byte prima e quelli dopo, e li tratta come se fossero attaccati. L’impronta, da adesso, prende il posto del documento.</p>
+  </section>
+
+  <section class="segmento" id="cms">
+    <h2>
+      <span class="numero">06</span>
+      CMS SignedData e attributi firmati
+      <code>cms</code>
+    </h2>
+    <p class="meta">
+      <b>32,0 s</b> · stima 34 s
+      (−2,0 s) · 91 parole a
+      170,5 al minuto · 126,0 kB ·
+      volume medio −15,8 dB
+    </p>
+    <audio controls preload="metadata" src="out/cms.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/cms.opus</code>.
+    </audio>
+    <p class="letto">Quello che si firma non è direttamente l’impronta, ma un piccolo pacchetto di dichiarazioni che la contiene. Dentro ci sono quattro cose: che tipo di contenuto è stato firmato, l’impronta appena calcolata, il momento della firma, e a quale certificato questa firma si lega. Il pacchetto è scritto in un formato standard, lo stesso che si usa per firmare la posta elettronica. Perché questo giro in più? Perché così la firma copre anche le dichiarazioni. Chi cambiasse l’ora dichiarata romperebbe la firma, esattamente come se avesse cambiato il testo del documento.</p>
+  </section>
+
+  <section class="segmento" id="firma">
+    <h2>
+      <span class="numero">07</span>
+      Il CMS dentro /Contents
+      <code>firma</code>
+    </h2>
+    <p class="meta">
+      <b>23,0 s</b> · stima 27 s
+      (−4,0 s) · 71 parole a
+      184,9 al minuto · 91,2 kB ·
+      volume medio −15,4 dB
+    </p>
+    <audio controls preload="metadata" src="out/firma.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/firma.opus</code>.
+    </audio>
+    <p class="letto">Adesso entra in gioco la chiave privata. Prende il pacchetto e lo trasforma in un blocco di byte che soltanto lei poteva produrre: quella è la firma. Il blocco va scritto dentro il buco lasciato aperto prima, dimensionato apposta per contenerlo. Il documento non cambia di una virgola: si riempie solo la parte che era vuota. Da questo momento il file è firmato, e chiunque lo riceva può controllarlo da solo.</p>
+  </section>
+
+  <section class="segmento" id="verifica">
+    <h2>
+      <span class="numero">08</span>
+      Tre controlli, tre esiti
+      <code>verifica</code>
+    </h2>
+    <p class="meta">
+      <b>29,5 s</b> · stima 27 s
+      (+2,5 s) · 72 parole a
+      146,6 al minuto · 114,9 kB ·
+      volume medio −16,0 dB
+    </p>
+    <audio controls preload="metadata" src="out/verifica.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/verifica.opus</code>.
+    </audio>
+    <p class="letto">Ora facciamo la strada al contrario, come farebbe chi riceve il documento. Primo controllo: quanta parte del file è coperta. Secondo controllo: si ricalcola l’impronta sui byte coperti, e si guarda se coincide con quella firmata. Terzo controllo: con la chiave pubblica del certificato si verifica che la firma venga davvero dalla chiave privata corrispondente. Qui passano tutti e tre. Copertura fino all’ultimo byte, documento intatto, autore coerente. Adesso proviamo a romperlo.</p>
+  </section>
+
+  <section class="segmento" id="attacco-cifra">
+    <h2>
+      <span class="numero">09</span>
+      Falsificare la cifra
+      <code>attacco-cifra</code>
+    </h2>
+    <p class="meta">
+      <b>30,0 s</b> · stima 31 s
+      (−1,0 s) · 82 parole a
+      164,0 al minuto · 118,4 kB ·
+      volume medio −15,6 dB
+    </p>
+    <audio controls preload="metadata" src="out/attacco-cifra.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/attacco-cifra.opus</code>.
+    </audio>
+    <p class="letto">Cambiamo un byte solo. La prima cifra dell’importo: da mille diventa novemila. Il file resta lungo esattamente come prima, e tutto il resto è al suo posto. Il documento si apre e si legge come sempre. Rifacciamo la verifica. L’impronta ricalcolata non coincide più con quella firmata, e il verdetto è negativo. Un byte è bastato. Le lettere fra parentesi però dicono ancora mille: è la difesa antica contro le falsificazioni, scrivere la somma due volte. Funziona, ma serve qualcuno che legga.</p>
+  </section>
+
+  <section class="segmento" id="attacco-lettere">
+    <h2>
+      <span class="numero">10</span>
+      Falsificare anche le lettere
+      <code>attacco-lettere</code>
+    </h2>
+    <p class="meta">
+      <b>31,6 s</b> · stima 36 s
+      (−4,4 s) · 97 parole a
+      184,4 al minuto · 123,6 kB ·
+      volume medio −15,2 dB
+    </p>
+    <audio controls preload="metadata" src="out/attacco-lettere.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/attacco-lettere.opus</code>.
+    </audio>
+    <p class="letto">Il documento è tornato allo stato firmato e integro. Adesso falsifichiamo anche le lettere, così cifre e parole concordano di nuovo. Ma la parola nuova è più lunga della vecchia, e il file cresce di tre byte. Il documento dichiara al suo interno quanto è lungo ogni pezzo, e tiene una tabella di indirizzi: ora quei numeri mentono, e gli indirizzi puntano tre byte troppo indietro. Eppure si apre lo stesso. Chi disegna la pagina è indulgente: ricostruisce da solo quello che non torna, e ve la mostra. La firma no. Vedere un documento non è verificarlo.</p>
+  </section>
+
+  <section class="segmento" id="attacco-coda">
+    <h2>
+      <span class="numero">11</span>
+      Modificare dopo la firma
+      <code>attacco-coda</code>
+    </h2>
+    <p class="meta">
+      <b>30,7 s</b> · stima 33 s
+      (−2,3 s) · 89 parole a
+      173,9 al minuto · 122,1 kB ·
+      volume medio −15,4 dB
+    </p>
+    <audio controls preload="metadata" src="out/attacco-coda.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/attacco-coda.opus</code>.
+    </audio>
+    <p class="letto">Di nuovo, il documento è tornato integro. Questo attacco è diverso, ed è il più insidioso. Non tocchiamo niente di quello che è già firmato: aggiungiamo in fondo. Chi apre il file vede sempre l’ultima versione, quindi vedrà l’importo nuovo. E la firma? La firma è ancora valida, perché i byte che copriva non sono cambiati. Il verdetto allora non può essere pieno: è un avvertimento. La firma tiene, ma copre soltanto una parte del file. Non basta chiedersi se la firma è valida. Bisogna chiedersi fin dove arriva.</p>
+  </section>
+
+  <section class="segmento" id="chiusura">
+    <h2>
+      <span class="numero">12</span>
+      Dimostrato e non dimostrato
+      <code>chiusura</code>
+    </h2>
+    <p class="meta">
+      <b>26,5 s</b> · stima 29 s
+      (−2,5 s) · 76 parole a
+      172,1 al minuto · 103,8 kB ·
+      volume medio −15,6 dB
+    </p>
+    <audio controls preload="metadata" src="out/chiusura.opus">
+      Il tuo browser non riproduce l’audio: apri direttamente <code>out/chiusura.opus</code>.
+    </audio>
+    <p class="letto">Facciamo il punto. Abbiamo visto che la firma si accorge di qualunque modifica, anche di un byte solo, e che dice fin dove arriva la sua protezione. Non abbiamo dimostrato chi sia davvero il firmatario: quello lo garantisce il certificato, e il nostro certificato garantiva se stesso. La matematica qui è vera. La fiducia, nel mondo reale, la costruiscono le autorità e la legge. La firma digitale è un vincolo tecnico; il resto è organizzazione umana.</p>
+  </section>
+
+  <section class="coda">
+    <h2>Come si rigenera</h2>
+    <p>Tutto da capo: <code>node scripts/narration/make-narration.mjs --forza</code></p>
+    <p>Un segmento solo: <code>node scripts/narration/make-narration.mjs --segmento &lt;stepId&gt;</code></p>
+    <p>
+      Senza opzioni rifà solo ciò che è cambiato, e riscrive comunque questa pagina e
+      <code>src/assets/narrazione/segments.js</code>, il modulo che entra nelle due varianti narrate
+      della demo.
+    </p>
+  </section>
+
+</main>
+</body>
+</html>

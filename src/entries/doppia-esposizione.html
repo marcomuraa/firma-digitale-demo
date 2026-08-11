@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Il titolo definitivo lo scrive il JavaScript al boot, con la variante
+         giusta (muta o narrata). Questo e solo il ripiego se lo script non parte. -->
+    <title>Firma digitale PAdES — Doppia esposizione</title>
+  </head>
+  <body>
+    <!-- Radice dell applicazione. Il contenuto qui sotto e il ripiego che si vede
+         soltanto se il JavaScript non parte: la pagina firma davvero un PDF nel
+         browser, quindi senza JavaScript non c e niente da mostrare. -->
+    <div id="app">
+      <noscript>
+        Questa pagina genera le chiavi, firma il documento e verifica la firma dentro il
+        browser: senza JavaScript non ha niente da mostrare.
+      </noscript>
+    </div>
+
+    <script type="module" src="./doppia-esposizione.js"></script>
+  </body>
+</html>
