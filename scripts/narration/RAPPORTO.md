@@ -248,6 +248,12 @@ produrre silenzio.
 - **`docs/stato.md`** andrà aggiornato da chi lo possiede: la narrazione ora esiste, `npm test` è
   a 303, e la frase «non esistono `scripts/narration/`, `src/assets/narrazione/`» non è più vera.
 - **Un `npm run narrazione`** sarebbe comodo, ma `package.json` non è scrivibile da questa fase.
+- **Un rosso visto una volta sola, e non riprodotto.** Su dieci esecuzioni di `npm test`, una ha
+  dato 302 su 303; le altre nove, e i dieci giri isolati dei 21 test di questa fase, sono verdi.
+  Non sono riuscito a catturare quale test fosse. Nel frattempo altre sessioni stavano scrivendo
+  in `src/core/`, `src/ui/` e `scripts/collaudo/` — un sorgente riscritto mentre il test lo legge
+  spiegherebbe tutto, ma è un'ipotesi, non una misura. Vale la pena rifare il conto a fan-out
+  chiuso.
 - **La critica indipendente non è stata fatta.** Era stata lanciata — sei lenti in parallelo su
   correttezza, rigenerabilità, contratto con la 5c, tenuta dei test, pagina di ascolto e onestà
   dei numeri — e tutte e sei sono morte a metà sul limite di sessione, dopo circa 200 comandi.
